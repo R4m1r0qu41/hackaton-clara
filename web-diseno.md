@@ -110,7 +110,7 @@ La API de P0 no trae un indicador `verificado` por campo. La página **no** escr
 ## Brechas del contrato (para pedir al Equipo 1; no se parchea `server/`)
 
 1. `/api/consulta` no devuelve fuente ni evidencia: solo `texto`, `color`, `origen`, `estado_sipres`, `motivo`, `advertencias`. El panel «¿De dónde sale?» queda vacío en el resultado de una oferta. **Pedido:** un campo opcional `fuentes[]` con `autoridad`, `url`, `periodo`, `consultado_en`.
-2. `/api/verificar` no trae la URL de SIPRES. Hace falta para el enlace del estado gris. **La URL la da JR; no se escribe de memoria.**
+2. `/api/verificar` no trae la URL de SIPRES. JR la dio: `https://webapps.condusef.gob.mx/SIPRES/jsp/pub/index.jsp` (responde 200 el 30/10/2026). La página la lleva como constante en `app.js`; el Equipo 1 puede devolverla en la respuesta si prefiere una sola fuente.
 3. `/api/consulta` devuelve solo texto: no hay cifras estructuradas (pago, costo total) para pintarlas aparte. Se muestra el texto tal cual.
 4. Nombres distintos para lo mismo: `estado` en `/api/verificar` y `estado_sipres` en `/api/consulta`. La página los trata por separado.
 5. Los `estado_id` del mapa son `EJ-01`, `EJ-02` en el stub. El `mapa-estados.svg` espera ids reales; hay que acordar el esquema con el dato de CNBV.
@@ -144,7 +144,7 @@ Solo con P0 estable y con el adaptador de ~30 minutos que v3 describe:
 
 ## Pendiente por confirmar
 
-- JR: URL oficial de SIPRES y redacción de los mensajes del semáforo.
+- JR: redacción de los mensajes del semáforo y de la señal de advertencia.
 - Equipo 1: brechas 1, 2 y 3 de arriba.
 - Equipo 2: esquema de `estado_id` y fuente del SVG de estados (licencia).
 - JR: si la página debe incluir ya el flujo guiado de P1 o esperar a P0 estable.
