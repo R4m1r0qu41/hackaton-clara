@@ -1,111 +1,152 @@
-import 'dotenv/config';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import pg from 'pg';
+import { chunkText } from './chunking.js';
+import { createPool } from './db.js';
+import { getEmbeddings, validateEmbeddings } from './embeddings.js';
 
-const { Pool } = pg;
+export { chunkText };
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, '..');
 
-export function chunkText(text, chunkSize = 1200, overlap = 200) {
-  if (!Number.isInteger(chunkSize) || chunkSize <= 0) throw new Error('chunkSize debe ser un entero positivo');
-  if (!Number.isInteger(overlap) || overlap < 0 || overlap >= chunkSize) throw new Error('overlap debe ser >= 0 y menor que chunkSize');
-  const normalized = String(text ?? '').replace(/\s+/g, ' ').trim();
-  if (!normalized) return [];
-  const chunks = [];
-  let start = 0;
-  while (start < normalized.length) {
-    const end = Math.min(start + chunkSize, normalized.length);
-    const chunk = normalized.slice(start, end).trim();
-    if (chunk) chunks.push(chunk);
-    if (end === normalized.length) break;
-    start = end - overlap;
-  }
-  return chunks;
-}
-
 export async function extractPdfPages(filePath) {
   const bytes = new Uint8Array(await fs.readFile(filePath));
-  const pdf = await getDocument({ data: bytes }).promise;
+  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const document = await getDocument({ data: bytes, isEvalSupported: false }).promise;
   const pages = [];
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-    const page = await pdf.getPage(pageNumber);
-    const content = await page.getTextContent();
-    const text = content.items.map(item => ('str' in item ? item.str : '')).join(' ').replace(/\s+/g, ' ').trim();
-    if (text) pages.push({ page: pageNumber, text });
+  try {
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber++) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const text = content.items.map(item => ('str' in item ? item.str : '')).join(' ').replace(/\s+/g, ' ').trim();
+      if (text) pages.push({ page: pageNumber, text });
+    }
+    return pages;
+  } finally {
+    await document.destroy();
   }
-  return pages;
 }
 
-export async function getEmbeddings(texts) {
-  const endpoint = process.env.EMBEDDINGS_API_URL;
-  if (!endpoint) throw new Error('Falta EMBEDDINGS_API_URL. Configura un endpoint de embeddings antes de ejecutar la ingesta.');
-  const headers = { 'content-type': 'application/json' };
-  if (process.env.EMBEDDINGS_API_KEY) headers.authorization = `Bearer ${process.env.EMBEDDINGS_API_KEY}`;
-  const response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify({ texts }) });
-  if (!response.ok) throw new Error(`Endpoint de embeddings respondió HTTP ${response.status}: ${await response.text()}`);
-  const data = await response.json();
-  if (!Array.isArray(data.embeddings) || data.embeddings.length !== texts.length || data.embeddings.some(v => !Array.isArray(v) || !v.every(Number.isFinite))) {
-    throw new Error('Respuesta de embeddings inválida: se esperaba { embeddings: number[][] } con un vector por texto.');
-  }
-  return data.embeddings;
-}
-
-export async function buildChunks(pdfDir = path.resolve(projectRoot, process.env.PDF_DIR || './data/pdfs')) {
+export async function buildChunks(
+  pdfDir = path.resolve(projectRoot, process.env.PDF_DIR || './data/pdfs'),
+  {
+    extractPages = extractPdfPages,
+    chunkSize = Number(process.env.CHUNK_SIZE || 1200),
+    overlap = Number(process.env.CHUNK_OVERLAP || 200)
+  } = {}
+) {
+  chunkText('', chunkSize, overlap);
   const entries = (await fs.readdir(pdfDir, { withFileTypes: true }))
     .filter(entry => entry.isFile() && entry.name.toLowerCase().endsWith('.pdf'))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  if (!entries.length) throw new Error(`No se encontraron PDFs en ${pdfDir}`);
-  const size = Number(process.env.CHUNK_SIZE || 1200);
-  const overlap = Number(process.env.CHUNK_OVERLAP || 200);
+    .sort((a, b) => a.name.localeCompare(b.name, 'en'));
+  if (!entries.length) throw new Error('No se encontraron archivos PDF en ' + pdfDir + '.');
+
   const records = [];
   for (const entry of entries) {
-    const pages = await extractPdfPages(path.join(pdfDir, entry.name));
-    for (const page of pages) {
-      const chunks = chunkText(page.text, size, overlap);
-      chunks.forEach((text, index) => records.push({ source: entry.name, page: page.page, chunkIndex: index, text }));
+    const pages = await extractPages(path.join(pdfDir, entry.name));
+    if (!Array.isArray(pages) || pages.length === 0) {
+      throw new Error('No se pudo extraer texto de ' + entry.name + '. Si es un PDF escaneado, requiere OCR.');
     }
-    console.log(`Procesado: ${entry.name} (${pages.length} páginas con texto)`);
+    const initialCount = records.length;
+    for (const page of pages) {
+      if (!Number.isSafeInteger(page.page) || page.page < 1 || typeof page.text !== 'string') {
+        throw new Error('El extractor devolvió metadatos de página inválidos para ' + entry.name + '.');
+      }
+      chunkText(page.text, chunkSize, overlap).forEach((text, chunkIndex) => {
+        records.push({ source: entry.name, page: page.page, chunkIndex, text });
+      });
+    }
+    if (records.length === initialCount) throw new Error('No se extrajo texto indexable de ' + entry.name + '.');
   }
   return records;
 }
 
-export async function ingest() {
-  if (!process.env.DATABASE_URL) throw new Error('Falta DATABASE_URL en el entorno.');
-  const records = await buildChunks();
-  if (!records.length) throw new Error('No se extrajo texto de los PDFs. Si son escaneados, hará falta OCR.');
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+function insertBatchSql(records, embeddings) {
+  const values = [];
+  const params = [];
+  records.forEach((record, index) => {
+    const offset = params.length;
+    values.push('($' + (offset + 1) + ', $' + (offset + 2) + ', $' + (offset + 3) + ', $' + (offset + 4) + ', $' + (offset + 5) + '::vector)');
+    params.push(record.source, record.page, record.chunkIndex, record.text, '[' + embeddings[index].join(',') + ']');
+  });
+  return {
+    sql: 'INSERT INTO rag_chunks (source, page, chunk_index, content, embedding) VALUES ' + values.join(', ') +
+      ' ON CONFLICT (source, page, chunk_index) DO UPDATE SET content = EXCLUDED.content, embedding = EXCLUDED.embedding',
+    params
+  };
+}
+
+export async function ingest({
+  pdfDir,
+  pool: providedPool,
+  embedder = getEmbeddings,
+  extractPages = extractPdfPages,
+  batchSize = 32
+} = {}) {
+  if (!providedPool && !process.env.DATABASE_URL) throw new Error('Falta DATABASE_URL.');
+  if (!Number.isSafeInteger(batchSize) || batchSize < 1 || batchSize > 256) throw new Error('batchSize debe ser un entero entre 1 y 256.');
+
+  const records = await buildChunks(pdfDir, { extractPages });
+  const allEmbeddings = [];
+  let dimensions;
+  for (let offset = 0; offset < records.length; offset += batchSize) {
+    const batch = records.slice(offset, offset + batchSize);
+    const embeddings = await embedder(batch.map(record => record.text));
+    const validated = validateEmbeddings(embeddings, batch.length);
+    if (dimensions === undefined) dimensions = validated.dimensions;
+    if (validated.dimensions !== dimensions) throw new Error('La dimensión de embeddings cambió entre lotes; no se modificó la base de datos.');
+    allEmbeddings.push(...validated.embeddings);
+  }
+
+  const pool = providedPool ?? await createPool();
+  const ownsPool = !providedPool;
+  let client;
+  let transactionStarted = false;
   try {
-    // El esquema debe crearse primero con rag/schema.sql.
-    const batchSize = 32;
-    for (let i = 0; i < records.length; i += batchSize) {
-      const batch = records.slice(i, i + batchSize);
-      const embeddings = await getEmbeddings(batch.map(record => record.text));
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
-        for (let j = 0; j < batch.length; j++) {
-          const r = batch[j];
-          await client.query(
-            `INSERT INTO rag_chunks (source, page, chunk_index, content, embedding)
-             VALUES ($1, $2, $3, $4, $5::vector)
-             ON CONFLICT (source, page, chunk_index) DO UPDATE SET content = EXCLUDED.content, embedding = EXCLUDED.embedding`,
-            [r.source, r.page, r.chunkIndex, r.text, `[${embeddings[j].join(',')}]`]
-          );
-        }
-        await client.query('COMMIT');
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-      } finally { client.release(); }
-      console.log(`Indexados ${Math.min(i + batch.length, records.length)}/${records.length} fragmentos`);
+    const current = await pool.query('SELECT MIN(vector_dims(embedding)) AS dimension, COUNT(DISTINCT vector_dims(embedding)) AS dimension_count FROM rag_chunks WHERE embedding IS NOT NULL');
+    const currentDimension = current.rows?.[0]?.dimension;
+    const currentDimensionCount = Number(current.rows?.[0]?.dimension_count || 0);
+    if (currentDimensionCount > 1) throw new Error('La base ya contiene embeddings de más de una dimensión. Limpie o regenere el índice antes de continuar.');
+    if (currentDimension != null && Number(currentDimension) !== dimensions) {
+      throw new Error('El embedding nuevo tiene dimensión ' + dimensions + ', pero la base ya contiene dimensión ' + currentDimension + '. Use la misma configuración de embeddings o un índice limpio.');
     }
-    console.log(`Ingesta completada: ${records.length} fragmentos procesados.`);
-  } finally { await pool.end(); }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+    transactionStarted = true;
+    await client.query('DELETE FROM rag_chunks');
+    for (let offset = 0; offset < records.length; offset += batchSize) {
+      const statement = insertBatchSql(records.slice(offset, offset + batchSize), allEmbeddings.slice(offset, offset + batchSize));
+      await client.query(statement.sql, statement.params);
+    }
+    await client.query('COMMIT');
+    transactionStarted = false;
+    return { sources: [...new Set(records.map(record => record.source))], chunks: records.length, dimensions };
+  } catch (error) {
+    if (transactionStarted && client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        // Preserve the original failure; the connection will be released below.
+      }
+    }
+    throw error;
+  } finally {
+    if (client) client.release();
+    if (ownsPool) await pool.end();
+  }
+}
+
+async function main() {
+  await import('dotenv/config');
+  const summary = await ingest();
+  console.log('Ingesta completada: ' + summary.chunks + ' chunks de ' + summary.sources.length + ' PDFs; dimensión ' + summary.dimensions + '.');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  ingest().catch(error => { console.error('Error en ingesta:', error.message); process.exitCode = 1; });
+  main().catch(error => {
+    console.error('Error en ingesta:', error.message);
+    process.exitCode = 1;
+  });
 }
