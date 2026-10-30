@@ -83,3 +83,27 @@ Los PDF se consideran entradas no confiables. PDF.js se invoca con isEvalSupport
 - https://github.com/mozilla/pdf.js/security/advisories/GHSA-hq66-cqwq-w95j
 
 El corpus actual contiene seis PDF cuyos nombres apuntan a productos de tarjetas. Para responder con respaldo sobre entidades oficiales de préstamos, habrá que incorporar las fuentes oficiales correspondientes. La API cita archivo y página; si la demo necesita URL oficial y fecha de consulta, esos metadatos deben añadirse al registro de cada documento.
+
+## Docker Desktop
+
+The repository includes a Node 24 image build and a Compose stack with PostgreSQL + pgvector. Docker pulls the official Node base image during build and creates named PostgreSQL and RAG data volumes. Node itself is an image/container, not a data volume.
+
+1. Copy .env.example to .env. Set POSTGRES_PASSWORD, set DATABASE_URL to use host db and the same database/user/password, set RAG_API_KEY, and configure EMBEDDINGS_API_URL when the embedding endpoint is chosen. Special characters in the database password must be URL-encoded inside DATABASE_URL.
+2. Pull PostgreSQL + pgvector and build the Node image:
+
+       docker compose pull db
+       docker compose build --pull rag
+3. Start PostgreSQL:
+
+       docker compose up -d db
+4. Apply the schema and ingest the PDFs:
+
+       docker compose run --rm rag npm run db:setup
+       docker compose run --rm rag npm run ingest
+5. Start the RAG API:
+
+       docker compose up -d rag
+
+The API is published on host loopback at port 3000 by default. n8n running on this host can call http://localhost:3000/query. For n8n in another container, attach that container to the hackaton-clara-rag network and call http://rag:3000/query. Store the bearer key in an n8n credential.
+
+Use Docker Desktop Linux containers with WSL 2. Before the first real run, configure the missing WSL 2 prerequisites and accept Docker Desktop's terms in its own UI. Do not expose the API to a public network without TLS and firewall controls.

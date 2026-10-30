@@ -1,0 +1,57 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-financial_rag}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      - rag_network
+
+  rag:
+    image: hackaton-clara-rag:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env with host db}
+      EMBEDDINGS_API_URL: ${EMBEDDINGS_API_URL:-}
+      EMBEDDINGS_API_KEY: ${EMBEDDINGS_API_KEY:-}
+      EMBEDDINGS_TIMEOUT_MS: ${EMBEDDINGS_TIMEOUT_MS:-30000}
+      PDF_DIR: /app/data/pdfs
+      CHUNK_SIZE: ${CHUNK_SIZE:-1200}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-200}
+      TOP_K: ${TOP_K:-5}
+      RAG_API_KEY: ${RAG_API_KEY:?Set RAG_API_KEY in .env}
+      HOST: 0.0.0.0
+      PORT: 3000
+      PGCONNECT_TIMEOUT_MS: ${PGCONNECT_TIMEOUT_MS:-5000}
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    volumes:
+      - ./data:/app/data:ro
+      - rag_data:/app/rag/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      rag_network:
+        aliases:
+          - rag
+
+volumes:
+  postgres_data:
+  rag_data:
+
+networks:
+  rag_network:
+    name: hackaton-clara-rag
