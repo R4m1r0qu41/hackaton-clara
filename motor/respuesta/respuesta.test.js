@@ -258,6 +258,34 @@ test('elegirRespuesta sin contexto responde con el mensaje de error', () => {
   assert.equal(r.texto, R.mensajes.error());
 });
 
+// verificarConversacion
+
+test('verificarConversacion acepta una pregunta o un saludo sin cifras', () => {
+  assert.deepEqual(R.verificarConversacion('¿Me confirmas cuántos pagos son?'), { ok: true, fallas: [] });
+});
+
+test('verificarConversacion rechaza lo que solo un cálculo puede decir', () => {
+  const casos = [
+    ['Pagarás $500 más.', 'cifra_sin_calculo'],
+    ['Es 30% más caro.', 'cifra_sin_calculo'],
+    ['🟢 Todo bien.', 'color_sin_calculo'],
+    ['Te recomiendo contratar.', 'palabra_prohibida'],
+    ['Mira https://ejemplo.mx', 'enlace_no_permitido'],
+    ['', 'texto_vacio'],
+    ['   ', 'texto_vacio'],
+    [null, 'texto_vacio'],
+    [undefined, 'texto_vacio'],
+    [42, 'texto_vacio'],
+    ['a'.repeat(R.MAX_CARACTERES + 1), 'demasiado_largo'],
+    [Array.from({ length: R.MAX_LINEAS + 1 }, (_, i) => `línea ${i}`).join('\n'), 'demasiadas_lineas'],
+  ];
+  for (const [texto, falla] of casos) {
+    const v = R.verificarConversacion(texto);
+    assert.equal(v.ok, false, String(texto).slice(0, 30));
+    assert.ok(v.fallas.includes(falla), `${String(texto).slice(0, 30)} -> ${v.fallas}`);
+  }
+});
+
 // mensajes fijos
 
 test('la bienvenida explica qué hacer y que no es una recomendación', () => {
@@ -279,6 +307,12 @@ test('la aclaración pregunta lo mínimo: como máximo dos preguntas', () => {
   assert.ok(!texto.includes('¿Cuál es el precio?'));
   const generico = R.mensajes.aclaracion([]);
   assert.ok(generico.length > 0 && !generico.includes('•'));
+});
+
+test('el mensaje de /verificar sin nombre explica cómo usarlo', () => {
+  const texto = R.mensajes.verificarSinNombre();
+  assert.ok(texto.includes('/verificar'));
+  assert.match(texto, /nombre/);
 });
 
 test('el mensaje de cobranza avisa que por ahora no se analiza', () => {
@@ -309,6 +343,7 @@ test('ningún mensaje fijo usa palabras prohibidas', () => {
     R.mensajes.servicioNoDisponible(),
     R.mensajes.error(),
     R.mensajes.cobranza(),
+    R.mensajes.verificarSinNombre(),
     R.mensajes.aclaracion(['¿Cuántos pagos son?']),
     R.mensajes.verificacion({ estado: 'registrada', fecha_consulta: FECHA, terminos_buscados: [], entidad: 'Zafiro' }),
     R.mensajes.verificacion({ estado: 'no_registrada_confirmada', fecha_consulta: FECHA, terminos_buscados: ['a', 'b'], entidad: 'X' }),
