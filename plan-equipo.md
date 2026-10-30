@@ -1,8 +1,8 @@
 # Crédito Claro — plan del equipo (v3)
 
-`Hackathon Clara · 30/10/2026 · Repo de trabajo: Julio-Cuellar/cuentasClaras, por pull requests · Producto y fuentes: JR`
+`Hackathon Clara · 30/10/2026 · Repo de trabajo: R4m1r0qu41/hackaton-clara, una rama por persona · Motor base: Julio-Cuellar/cuentasClaras · Producto y fuentes: JR`
 
-Esta versión sustituye a la anterior. Cambió la arquitectura: ya no se construye un servidor desde cero. El repo `cuentasClaras` trae el motor hecho y probado, y el trabajo es envolverlo, conectarlo a n8n y mostrarlo en una página. El detalle técnico (endpoints, secuencias, tareas por persona) está en `plan-build/plan-build.html`. Lo marcado como **propuesta** lo confirma Julio o JR.
+Esta versión sustituye a la anterior. Cambió la arquitectura: ya no se construye un servidor desde cero. El repo `cuentasClaras` de Julio trae el motor hecho y probado, y el trabajo es envolverlo, conectarlo a n8n y mostrarlo en una página. Todo el código y los documentos de JR se suben a su rama `Juan-Ramon` de `hackaton-clara`. El detalle técnico (endpoints, secuencias, tareas por persona) está en `plan-build/plan-build.html`. Lo marcado como **propuesta** lo confirma Julio o JR.
 
 ## Qué construimos
 
@@ -21,7 +21,7 @@ La IA extrae y redacta; el código calcula y decide. Cada número y cada color s
 |---|---|
 | Servidor y motor nuevos en `credito_claro` | Motor existente en `cuentasClaras`: extracción, cálculo, semáforo, SIPRES, Banxico y respuesta con verificador. La guía de n8n menciona 157 pruebas; no las ejecuté |
 | Bot dentro del servidor | Bot en n8n. Solo dos nodos Code pasan a HTTP Request hacia un servidor Node.js pequeño; el flujo actual queda como respaldo |
-| Cuatro carriles con worktrees | Dos equipos de dos, por pull requests |
+| Cuatro carriles con worktrees | Dos equipos de dos. Cada persona trabaja en su rama de `hackaton-clara` (hoy: `Eugenio`, `Joseph`, `Julio`, `Juan-Ramon`) y se integra por pull request a `main` |
 | Semáforo por CAT contra referencia de categoría | Se reutiliza el semáforo de Julio (sobrecosto en tiendas y costo en préstamos, sin la referencia del RIB). La referencia de categoría queda fuera de P0 |
 
 ## Alcance
@@ -34,6 +34,16 @@ La IA extrae y redacta; el código calcula y decide. Cada número y cada color s
 | **P2** | Ahorro/GAT, TPV y producto departamental. Fuera del recorrido de hoy. |
 
 **DeepSeek se conecta al final.** Antes, el servidor y n8n se prueban con salidas de extracción de ejemplo (las de las pruebas del repo) y con la plantilla determinista. Cuando el recorrido está estable, entra DeepSeek para extraer y redactar, y se prueba el chatbot con él. Si falla, la plantilla sale con el origen a la vista.
+
+## Piloto de fuentes RECA — JR
+
+JR pidió preparar una extracción de diez contratos de crédito para una futura consulta con evidencia. Es trabajo de fuentes separado del recorrido P0; la integración y la selección guiada de productos siguen condicionadas a P0 estable y al acuerdo del integrador. El destino definitivo y el revisor de otra persona o equipo se acuerdan antes de integrar.
+
+- Consultar RECA y conservar contrato y carátula, enlaces, institución, producto, número de registro, versión, estado, fecha de consulta y hash. Incluir anexos cuando sean necesarios para interpretar condiciones.
+- Extraer texto conservando página y señalar documentos escaneados, campos vacíos o ilegibles. Buscar tasa ordinaria y moratoria, CAT, comisiones, plazo, pagos y condiciones o periodo de gracia; `null` cuando no consten. Una plantilla sin llenar no es una oferta de crédito.
+- JR valida las fuentes, fechas y comparabilidad antes de publicar cifras o utilizarlas en el producto. Distinguir información del contrato modelo de condiciones personalizadas; el registro RECA no implica necesariamente revisión o autorización por CONDUSEF.
+- La futura comparación requiere supuestos equivalentes y datos suficientes; la capacidad de pago exige información de ingresos, gastos y obligaciones. El código hace la aritmética, el sistema cita evidencia y no promete evitar el sobreendeudamiento.
+- Criterio del piloto: diez registros con sus documentos y procedencia, extracción comprobada por página, vacíos y límites explícitos, y revisión de JR. No declarar el RAG ni la comparación implementados por descargar documentos.
 
 ## Arquitectura
 
@@ -63,7 +73,12 @@ La IA extrae y redacta; el código calcula y decide. Cada número y cada color s
 | **Equipo 2 · n8n, página y mapa** | `n8n/`, `web/`, `datos/procesado/acceso_estados.json` | Flujo de respaldo exportado, flujo nuevo con dos nodos HTTP y rama `/verificar`, página HTML en español para móvil, mapa o barras y el dato por estado |
 | **JR** | fuentes y producto | Verifica cada fila de datos, los umbrales del semáforo y la entrega en el Hub |
 
-Las parejas y los nombres los define JR. Julio es dueño del repo.
+Las parejas y los nombres los define JR. Julio es dueño del repo `cuentasClaras` y el integrador técnico.
+
+**Datos que ya subieron compañeros a `hackaton-clara` (no revisados por mí, solo su lista de archivos):**
+
+- Rama `Joseph`: `entidades.json`, `products.verified.json`, `referencias.json`, `conocimiento.json`, `rag.js`, y la base de inclusión financiera de la CNBV (`.xlsx` y PDF de mapas). Parecen servir para la tabla SIPRES, el mapa y la selección guiada de P1. Hay que comprobar qué contienen y si cada dato tiene fuente y fecha antes de usarlo.
+- Rama `Eugenio`: PDFs de tarjetas (Clásicas, Oro y Platino). Relacionados con el piloto de fuentes de abajo.
 
 ## Reglas de datos y semáforo
 
@@ -76,7 +91,7 @@ Las parejas y los nombres los define JR. Julio es dueño del repo.
 
 ## Cómo trabajamos
 
-1. Una rama por tarea con prefijo del equipo (`eq1/…`, `eq2/…`) y PR pequeño hacia `main`.
+1. Cada persona trabaja en su propia rama de `hackaton-clara`. Se integra con un PR pequeño hacia `main`, hecho por una persona. Lo que sube Claude va solo a `Juan-Ramon`, nunca a las ramas de otros ni a `main`.
 2. La revisión la hace una persona del otro equipo: `null` para lo desconocido, fuente y fecha en cada dato, ninguna clave.
 3. `node --test` en verde antes de pedir revisión.
 4. Si un PR cambia un módulo existente, se corre `node scripts/empaquetar.js` y se incluyen los nodos regenerados, para que el flujo de respaldo siga válido.
@@ -95,7 +110,9 @@ Las horas del brief (pausa 13:00 a 13:45, congelar código 14:45 a 15:15, entreg
 
 ## Pendiente por confirmar
 
-- **Reglas del Hub (JR):** el repo se creó hoy, pero su primer commit trae módulos y pruebas ya hechos. Confirmar si se permite usar preparación previa y si hay que declararla.
+- **Reglas del Hub (JR):** el repo de Julio se creó hoy, pero su primer commit trae módulos y pruebas ya hechos. Confirmar si se permite usar preparación previa y si hay que declararla.
+- **Cómo llegan los módulos de Julio a `hackaton-clara` (Julio y JR):** copiarlos a una rama o usar el repo de Julio como dependencia. No se copian hasta confirmar las reglas del Hub.
+- **Lenguaje del servidor:** el `README.md` anterior decía Python. Este plan dice Node.js (CommonJS) porque los módulos de Julio son Node.js. JR confirma.
 - **Dónde corre n8n (Julio y Equipo 2):** el Telegram Trigger necesita una URL HTTPS pública; si n8n es remoto, el servidor necesita un túnel. Por eso se conserva el flujo de respaldo.
 - **Clave de OpenRouter** para el servidor y para n8n (JR y Equipo 1).
 - **Modelo con visión** para la foto: sin confirmar, así que P0 es solo texto.
