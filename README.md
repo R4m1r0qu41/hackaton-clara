@@ -1,127 +1,119 @@
-# Crédito Claro — plan del equipo
+# Crédito Claro — plan del equipo (v3)
 
-`Hackathon Clara · 30/10/2026 · Integrador técnico: Julio · Producto y fuentes: JR`
+`Hackathon Clara · 30/10/2026 · Repo de trabajo: R4m1r0qu41/hackaton-clara, una rama por persona · Motor base: Julio-Cuellar/cuentasClaras · Producto y fuentes: JR`
 
-Este plan sale de `docs/briefs/…v2_2` y de la idea "Cuentas Claras". Si algo choca con `AGENTS.md`, `docs/COORDINATION.md` o `docs/ACCEPTANCE.md`, mandan esos archivos. Lo marcado como **propuesta** lo confirma Julio o JR.
+Esta versión sustituye a la anterior. Cambió la arquitectura: ya no se construye un servidor desde cero. El repo `cuentasClaras` de Julio trae el motor hecho y probado, y el trabajo es envolverlo, conectarlo a n8n y mostrarlo en una página. Todo el código y los documentos de JR se suben a su rama `Juan-Ramon` de `hackaton-clara`. El detalle técnico (endpoints, secuencias, tareas por persona) está en `plan-build/plan-build.html`. Lo marcado como **propuesta** lo confirma Julio o JR.
 
 ## Qué construimos
 
-Un asesor de crédito con datos oficiales reales. Una persona escribe una entidad o un producto y recibe:
+Un asesor de crédito con datos oficiales reales:
 
 1. **Verificación de la entidad:** si aparece registrada en SIPRES (Condusef), con fecha de consulta.
-2. **Conveniencia del crédito:** un semáforo inicial basado en datos reales del producto, más un simulador de costo.
-3. **Mapa de cobertura:** acceso a servicios financieros por estado (CNBV), conectado a las entidades y productos cuando el dato lo permita.
-4. **Telegram y HTML:** el bot de Telegram y una página HTML simple usan el mismo backend.
+2. **Conveniencia del crédito:** una persona pega el texto de una oferta o etiqueta; el sistema calcula el costo real y da un semáforo con hechos y fuentes.
+3. **Mapa de cobertura:** indicador oficial de acceso financiero por estado, con periodo y fuente.
+4. **Telegram y HTML:** el bot de Telegram (armado en n8n) y una página HTML usan el mismo motor.
 
-Idea de diseño: **la IA explica, el código decide.** Cada número y cada color salen de código con fuente y fecha. DeepSeek solo redacta la explicación con citas.
+La IA extrae y redacta; el código calcula y decide. Cada número y cada color salen de código con fuente y fecha.
 
-**DeepSeek se conecta al final.** Primero el bot y el HTML funcionan completos con la plantilla determinista. Cuando el recorrido está estable, se enchufa DeepSeek en `/api/explicar` y se prueba el chatbot con él. La plantilla queda como respaldo y avisa a la vista cuando se usa.
+## Qué cambió
+
+| Antes | Ahora |
+|---|---|
+| Servidor y motor nuevos en `credito_claro` | Motor existente en `cuentasClaras`: extracción, cálculo, semáforo, SIPRES, Banxico y respuesta con verificador. La guía de n8n menciona 157 pruebas; no las ejecuté |
+| Bot dentro del servidor | Bot en n8n. Solo dos nodos Code pasan a HTTP Request hacia un servidor Node.js pequeño; el flujo actual queda como respaldo |
+| Cuatro carriles con worktrees | Dos equipos de dos. Cada persona trabaja en su rama de `hackaton-clara` (hoy: `Eugenio`, `Joseph`, `Julio`, `Juan-Ramon`) y se integra por pull request a `main` |
+| Semáforo por CAT contra referencia de categoría | Se reutiliza el semáforo de Julio (sobrecosto en tiendas y costo en préstamos, sin la referencia del RIB). La referencia de categoría queda fuera de P0 |
 
 ## Alcance
 
 | Prioridad | Qué |
 |---|---|
-| **P0** | Verificación de entidad + semáforo + simulador, por Telegram y por HTML, con plantilla determinista. Al final, explicación con DeepSeek y respaldo visible. |
-| **P0 condicionado** | Mapa por estado con dato oficial. **Puerta a las 11:30:** si no hay dataset, se cambia por un gráfico oficial por entidad federativa. |
-| **P1** | Contrato real analizado con DeepSeek; producto departamental; INEGI. Solo con P0 estable. |
-| **P2** | Foto de ofertas por visión, ahorro/GAT, TPV. Fuera del recorrido de hoy. |
+| **P0** | Pegar el texto de una oferta o etiqueta → extracción → cálculo → semáforo → respuesta, por Telegram y por HTML. Verificar una entidad por nombre. |
+| **P0 condicionado** | Mapa por estado con dato oficial. Si no hay dato, gráfico de barras con lo que sí hay. |
+| **P1** | Foto de la oferta (necesita un modelo con visión, por verificar). Selección guiada entidad → producto → monto y plazo con productos reales: exige un adaptador nuevo de unos 30 minutos, porque `calcular()` espera pagos y no tasas. |
+| **P2** | Ahorro/GAT, TPV y producto departamental. Fuera del recorrido de hoy. |
+
+**DeepSeek se conecta al final.** Antes, el servidor y n8n se prueban con salidas de extracción de ejemplo (las de las pruebas del repo) y con la plantilla determinista. Cuando el recorrido está estable, entra DeepSeek para extraer y redactar, y se prueba el chatbot con él. Si falla, la plantilla sale con el origen a la vista.
+
+## Piloto de fuentes RECA — JR
+
+JR pidió preparar una extracción de diez contratos de crédito para una futura consulta con evidencia. Es trabajo de fuentes separado del recorrido P0; la integración y la selección guiada de productos siguen condicionadas a P0 estable y al acuerdo del integrador. El destino definitivo y el revisor de otra persona o equipo se acuerdan antes de integrar.
+
+- Consultar RECA y conservar contrato y carátula, enlaces, institución, producto, número de registro, versión, estado, fecha de consulta y hash. Incluir anexos cuando sean necesarios para interpretar condiciones.
+- Extraer texto conservando página y señalar documentos escaneados, campos vacíos o ilegibles. Buscar tasa ordinaria y moratoria, CAT, comisiones, plazo, pagos y condiciones o periodo de gracia; `null` cuando no consten. Una plantilla sin llenar no es una oferta de crédito.
+- JR valida las fuentes, fechas y comparabilidad antes de publicar cifras o utilizarlas en el producto. Distinguir información del contrato modelo de condiciones personalizadas; el registro RECA no implica necesariamente revisión o autorización por CONDUSEF.
+- La futura comparación requiere supuestos equivalentes y datos suficientes; la capacidad de pago exige información de ingresos, gastos y obligaciones. El código hace la aritmética, el sistema cita evidencia y no promete evitar el sobreendeudamiento.
+- Criterio del piloto: diez registros con sus documentos y procedencia, extracción comprobada por página, vacíos y límites explícitos, y revisión de JR. No declarar el RAG ni la comparación implementados por descargar documentos.
 
 ## Arquitectura
 
 ```text
- Datos con fecha (JSON en data/)          Telegram  ──┐
- entidades SIPRES · productos · CNBV                  ├──►  server/ (Python) ──►  motor determinista
- Banxico (respaldo local)                 HTML ───────┘     /api/*               semáforo · simulador
+ Telegram ─► n8n (guía GUIA-N8N.md) ──POST /api/procesar ───────┐
+              extracción · CETES · redacción                    │
+              └────POST /api/elegir-respuesta ──────────────────┤
+                                                                ▼
+ Navegador ──► /api/consulta · /api/verificar · /api/acceso* ─► server/ (Node, CommonJS)
+                                                                │  require
+                                                                ▼
+                                          módulos existentes: flujo/procesar · respuesta
+                                          sipres · calculo · semaforo · banxico · extraccion
                                                                 │
-                                                                └──► DeepSeek (solo explica, con citas)
-                                                                      └─ respaldo: plantilla fija
+                                                  datos/procesado/*.json (a mano, con fuente)
 ```
 
-- **Stack (propuesta):** Python ligero + HTML servido por el mismo servidor. Sin n8n. Sin base de datos. Dependencias mínimas.
-- **Clave de OpenRouter:** solo en el servidor y en `.env.local` (fuera de Git). Nunca con prefijo `VITE_`. Modelo: `deepseek/deepseek-v4.1-flash`.
-- **Demo sin portales en vivo:** todo corre con la captura local. DeepSeek es el único servicio externo opcional.
+- **Stack (propuesta):** Node.js con `node:http`, CommonJS como el resto del repo, sin dependencias nuevas y sin base de datos. Python no entra.
+- **Claves:** la de OpenRouter solo en el servidor y en las credenciales de n8n, nunca en el repo ni en los JSON exportados. El crédito es por participante, no compartido: hay que decidir qué clave usa cada pieza.
+- **Demo sin portales en vivo:** todo corre con los datos capturados. Telegram, n8n y el modelo son lo único que usa red.
 
-### Endpoints (propuesta para Julio)
+## Reparto: dos equipos de dos
 
-| Ruta | Entrada → salida |
-|---|---|
-| `GET /api/entidades?q=` | Entidades con estado SIPRES y evidencia |
-| `GET /api/productos` | `Producto[]` verificados |
-| `POST /api/semaforo` | `{entidad_id, producto_id}` → color y razones con evidencia |
-| `POST /api/simular` | `{monto, plazo, producto_id}` → pago, costo total, CAT implícito `estimado` |
-| `POST /api/explicar` | `{producto_id, pregunta, evidencia[]}` → texto con citas, o plantilla |
-| `GET /api/acceso?estado=` | Indicador oficial + periodo. Nunca cobertura por domicilio |
+| Equipo | Rutas | Trabajo |
+|---|---|---|
+| **Equipo 1 · Servidor y verificación** | `server/`, `datos/procesado/sipres_entidades.json` | Servidor con `/api/procesar` y `/api/elegir-respuesta` (primer PR, desbloquea al otro equipo), `/api/verificar`, `/api/consulta` con OpenRouter, `/api/acceso*` y la tabla SIPRES capturada |
+| **Equipo 2 · n8n, página y mapa** | `n8n/`, `web/`, `datos/procesado/acceso_estados.json` | Flujo de respaldo exportado, flujo nuevo con dos nodos HTTP y rama `/verificar`, página HTML en español para móvil, mapa o barras y el dato por estado |
+| **JR** | fuentes y producto | Verifica cada fila de datos, los umbrales del semáforo y la entrega en el Hub |
 
-### Tipos nuevos para `shared/schema.ts` (propuesta; solo Julio edita)
+Las parejas y los nombres los define JR. Julio es dueño del repo `cuentasClaras` y el integrador técnico.
 
-```ts
-type EstadoSipres = 'registrada' | 'no_registrada_confirmada' | 'sin_verificar';
-type Entidad = { id: string; nombre_comercial: string; razon_social: string | null;
-  estado_sipres: EstadoSipres; terminos_buscados: string[]; evidencia: Evidencia };
-type Semaforo = { color: 'verde'|'amarillo'|'rojo'|'gris';
-  razones: Array<{ codigo: string; hecho: string; evidencia: Evidencia }> };
-type Simulacion = { monto_mxn: number; plazo_meses: number; pago_periodico_mxn: number | null;
-  costo_total_mxn: number | null; cat_implicito_pct: number | null; verificacion: 'estimado' };
-```
+**Datos que ya subieron compañeros a `hackaton-clara` (no revisados por mí, solo su lista de archivos):**
+
+- Rama `Joseph`: `entidades.json`, `products.verified.json`, `referencias.json`, `conocimiento.json`, `rag.js`, y la base de inclusión financiera de la CNBV (`.xlsx` y PDF de mapas). Parecen servir para la tabla SIPRES, el mapa y la selección guiada de P1. Hay que comprobar qué contienen y si cada dato tiene fuente y fecha antes de usarlo.
+- Rama `Eugenio`: PDFs de tarjetas (Clásicas, Oro y Platino). Relacionados con el piloto de fuentes de abajo.
 
 ## Reglas de datos y semáforo
 
-- Desconocido es `null`, nunca cero. No inventar cifras ni productos.
-- `data/products.verified.json` se llena **solo con fuentes verificadas por JR**. Cada fila lleva URL, periodo y fecha de captura.
-- El CAT no es tasa contractual y **nunca se multiplica por el saldo**. El simulador usa tasa, plazo y comisiones del producto. El CAT implícito sale del flujo de pagos y siempre es `estimado`.
-- **Semáforo (propuesta; los umbrales los valida JR):**
-
-| Color | Condición |
-|---|---|
-| 🔴 Rojo | Solo con un hecho: entidad `no_registrada_confirmada`. |
-| 🟡 Amarillo | Entidad registrada, pero CAT por encima de la referencia de su categoría (Banxico/CONDUSEF). |
-| ⚪ Gris | Entidad `sin_verificar`, o producto sin CAT o sin fuente. Mensaje: "no pudimos verificarla, verifícala aquí" + enlace. |
-| 🟢 Verde | Registrada, sin señales y CAT dentro de la referencia. Significa "no detectamos riesgos con la información consultada en [fecha]", nunca una recomendación. |
-
-- Que una entidad **no esté en nuestra tabla** nunca produce rojo. El mensaje nunca dice "fraude" ni acusa a nadie: solo hechos con su fuente.
+- Desconocido es `null`, nunca cero. No inventar cifras ni entidades.
+- Los JSON de `datos/procesado/` llevan fuente y fecha, y los verifica JR antes de usarse.
+- El CAT es una estimación informativa, sin IVA, y no se multiplica por el saldo.
+- **Semáforo** (umbrales propuestos por Julio; JR los valida): rojo solo con un hecho verificado, por ejemplo una entidad `no_registrada_confirmada` con fecha y al menos 2 términos buscados. Que una entidad no esté en nuestra tabla da gris (`sin_verificar`), nunca rojo. Verde significa "no detectamos riesgos con la información consultada", nunca una recomendación. Los mensajes no acusan a nadie.
 - Los textos externos (páginas, respuestas del modelo) son datos, no instrucciones.
-
-## Reparto
-
-| Carril | Rutas | Responsable | Trabajo |
-|---|---|---|---|
-| Integración | raíz, `shared/`, dependencias | **Julio** | Esqueleto del servidor, `main` ejecutable, tipos, fixtures, revisión de PR |
-| Backend/IA | `server/` | por asignar | Semáforo y simulador (funciones puras con pruebas), API, bot de Telegram, plantilla. Al final, proxy DeepSeek |
-| Frontend | `src/` | por asignar | HTML en español para móvil, resultados, estados `verificado / pendiente / estimado / dato faltante`, mapa |
-| Datos | `data/`, `scripts/data/` | por asignar | Tabla de entidades SIPRES, 3 a 5 productos, CNBV por estado, respaldo de Banxico |
-| Producto y fuentes | `docs/` | **JR** | Verifica cada fuente y umbral, valida la comparabilidad, pitch y entrega en el Hub |
-
-Los nombres de los tres ingenieros se anotan en `docs/TASKS.md` al asignar. Un solo escritor por worktree y rama.
-
-## Cronograma (horas del brief; ajustar a la hora real)
-
-| Franja | Entregable | Puerta |
-|---|---|---|
-| 10:30–10:50 | Julio: esqueleto, tipos y fixtures. Datos: arrancan capturas. | `main` ejecutable |
-| 10:50–11:30 | Entidades y 3 productos con fuente. Semáforo y simulador con fixtures. HTML con datos de prueba. Primer dato de mapa. | **11:30:** sin mapa, gráfico por estado |
-| 11:30–12:20 | Bot de Telegram y API conectados, respondiendo con la plantilla. | Bot responde de punta a punta sin IA |
-| 12:20–13:00 | **Demo completa antes de la pausa, sin DeepSeek.** | Congelar P0 |
-| 13:45–14:20 | **Conectar DeepSeek** en `/api/explicar` y probar el chatbot con él. P1 solo si el recorrido es estable. | Si falla DeepSeek, plantilla visible |
-| 14:20–14:45 | Citas, supuestos y estados de datos | Sin dependencias nuevas |
-| 14:45–15:15 | Pruebas en celular, datos nulos, sin red | Congelar código |
-| 15:15–16:00 | Pitch, capturas y entrega en el Hub | Verificar acuse |
+- No se guardan datos personales ni conversaciones. n8n debe tener desactivado el guardado de ejecuciones.
 
 ## Cómo trabajamos
 
-1. Cada quien lee `AGENTS.md`, `README.md`, `docs/COORDINATION.md` y su tarea antes de editar.
-2. Una tarea tiene responsable, rutas, contrato, aceptación y revisor antes de empezar. Se anota en `docs/TASKS.md` (solo Julio lo edita).
-3. Commits locales por unidad verificada y rutas exactas (nunca `git add .`). **Push, PR y merge los hace un humano.**
-4. El revisor de otro carril comprueba el SHA, la fuente y el contrato. Julio integra contra el `main` actual.
-5. Cambios a `shared/` se piden a Julio; no se editan desde otra tarea.
-6. No se guardan datos personales ni conversaciones. El bot responde sin guardar historial.
+1. Cada persona trabaja en su propia rama de `hackaton-clara`. Se integra con un PR pequeño hacia `main`, hecho por una persona. Lo que sube Claude va solo a `Juan-Ramon`, nunca a las ramas de otros ni a `main`.
+2. La revisión la hace una persona del otro equipo: `null` para lo desconocido, fuente y fecha en cada dato, ninguna clave.
+3. `node --test` en verde antes de pedir revisión.
+4. Si un PR cambia un módulo existente, se corre `node scripts/empaquetar.js` y se incluyen los nodos regenerados, para que el flujo de respaldo siga válido.
+5. Julio integra. Quién hace merge y si hay protección de `main`, por confirmar.
 
-## Aceptación
+## Puntos de control
 
-Manda `docs/ACCEPTANCE.md`. Para hoy, lo mínimo: el flujo funciona en móvil y por Telegram; hay tres productos con fuente y fecha; ningún placeholder pasa por dato real; la demo corre sin portales en vivo; DeepSeek explica con citas o el respaldo es visible; un revisor distinto comprueba el SHA final.
+Las horas del brief (pausa 13:00 a 13:45, congelar código 14:45 a 15:15, entrega hasta las 16:00) deben ajustarse a la agenda real.
+
+| Punto | Qué debe estar listo |
+|---|---|
+| 1 · Antes de la pausa | El servidor responde con ejemplos; n8n y la página funcionan contra él; flujo de respaldo exportado |
+| 2 · Después de la pausa | Motor real detrás de los endpoints, datos reales, mapa o barras y DeepSeek conectado |
+| 3 · Congelar código | Pruebas en celular, con servidor apagado, sin IA y con datos nulos |
+| 4 · Entrega | Pitch, capturas y entrega en el Hub; verificar el acuse |
 
 ## Pendiente por confirmar
 
-- Reglas del Hub: si se permite usar preparación previa. Mientras tanto no copiamos código escrito antes del evento; solo se reusan reglas y casos como especificación.
-- Si la CNBV trae detalle por entidad (de eso depende conectar el mapa con productos).
-- Umbral amarillo del semáforo (JR).
-- Prueba de la clave de OpenRouter (JR).
+- **Reglas del Hub (JR):** el repo de Julio se creó hoy, pero su primer commit trae módulos y pruebas ya hechos. Confirmar si se permite usar preparación previa y si hay que declararla.
+- **Cómo llegan los módulos de Julio a `hackaton-clara` (Julio y JR):** copiarlos a una rama o usar el repo de Julio como dependencia. No se copian hasta confirmar las reglas del Hub.
+- **Lenguaje del servidor:** el `README.md` anterior decía Python. Este plan dice Node.js (CommonJS) porque los módulos de Julio son Node.js. JR confirma.
+- **Dónde corre n8n (Julio y Equipo 2):** el Telegram Trigger necesita una URL HTTPS pública; si n8n es remoto, el servidor necesita un túnel. Por eso se conserva el flujo de respaldo.
+- **Clave de OpenRouter** para el servidor y para n8n (JR y Equipo 1).
+- **Modelo con visión** para la foto: sin confirmar, así que P0 es solo texto.
+- **Umbrales del semáforo** (JR) y datos del mapa y su licencia (Equipo 2).
