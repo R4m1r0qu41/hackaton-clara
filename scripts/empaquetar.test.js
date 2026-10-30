@@ -6,9 +6,10 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const vm = require('node:vm');
-const { construirTodo, leerTabla, RUTA_TABLA, RUTA_NODOS, RUTA_WORKFLOWS } = require('./empaquetar');
+const { construirTodo, leerTabla, leerPrompt, RUTA_TABLA, RUTA_NODOS, RUTA_WORKFLOWS, RUTA_PROMPT } = require('./empaquetar');
 const { procesar } = require('../motor/flujo/procesar');
-const { elegirRespuesta } = require('../motor/respuesta/respuesta');
+const { elegirSalida } = require('../motor/flujo/salida');
+const { clasificarMensaje, textoFijo } = require('../motor/flujo/mensaje');
 
 const FECHA = '30/10/2026';
 
@@ -62,10 +63,10 @@ function ejecutar(codigo, json) {
 const paquete = () => construirTodo({ tablaSipres: TABLA });
 const sinTabla = () => construirTodo({ tablaSipres: [] });
 
-test('construye los tres nodos y los dos workflows', () => {
+test('construye los cinco nodos y los tres workflows', () => {
   const t = paquete();
-  assert.deepEqual(Object.keys(t.nodos).sort(), ['elegir-respuesta.js', 'evaluar-oferta.js', 'verificar-entidad.js']);
-  assert.deepEqual(Object.keys(t.workflows).sort(), ['evaluar-oferta.json', 'verificar-entidad.json']);
+  assert.deepEqual(Object.keys(t.nodos).sort(), ['clasificar-mensaje.js', 'elegir-respuesta.js', 'evaluar-oferta.js', 'mensaje-fijo.js', 'verificar-entidad.js']);
+  assert.deepEqual(Object.keys(t.workflows).sort(), ['bot.json', 'evaluar-oferta.json', 'verificar-entidad.json']);
 });
 
 test('el código empaquetado es autocontenido: sin módulos del sistema ni archivos', () => {
@@ -123,14 +124,33 @@ test('verificar_entidad acota la consulta y no lanza con textos enormes', () => 
   assert.equal(salida.estado, 'sin_verificar');
 });
 
-test('elegir_respuesta da lo mismo que llamar a elegirRespuesta', () => {
+test('elegir_respuesta da lo mismo que elegirSalida con la salida del agente', () => {
   const codigo = paquete().nodos['elegir-respuesta.js'];
-  const { ctx, plantilla } = procesar({ extraccion: extraccion('etiqueta_tienda'), tablaSipres: TABLA, hoy: FECHA });
-  const texto = `${plantilla}\nTe cobrarán $99,999.`;
-  assert.deepEqual(ejecutar(codigo, { texto, ctx })[0].json, JSON.parse(JSON.stringify(elegirRespuesta(texto, ctx))));
-  const sinContexto = ejecutar(codigo, { texto })[0].json;
-  assert.equal(sinContexto.origen, 'plantilla');
-  assert.equal(sinContexto.motivo, 'sin_contexto');
+  const resultado = procesar({ extraccion: extraccion('etiqueta_tienda'), tablaSipres: TABLA, hoy: FECHA });
+  const salidaDelAgente = {
+    output: `${resultado.plantilla}\nTe cobrarán $99,999.`,
+    intermediateSteps: [{ action: { tool: 'evaluar_oferta', toolInput: '{}' }, observation: JSON.stringify(resultado) }],
+  };
+  const esperado = elegirSalida({ texto: salidaDelAgente.output, pasos: salidaDelAgente.intermediateSteps });
+  assert.equal(esperado.motivo, 'verificador_rechazo');
+  assert.deepEqual(ejecutar(codigo, salidaDelAgente)[0].json, JSON.parse(JSON.stringify(esperado)));
+  assert.equal(ejecutar(codigo, { error: 'tiempo agotado' })[0].json.motivo, 'error_agente');
+  assert.equal(ejecutar(codigo, {})[0].json.motivo, 'conversacion_rechazada');
+});
+
+test('clasificar_mensaje da lo mismo que clasificarMensaje', () => {
+  const codigo = paquete().nodos['clasificar-mensaje.js'];
+  const mensaje = (text) => ({ message: { chat: { id: 1 }, text } });
+  for (const actualizacion of [mensaje('hola'), mensaje('/verificar Nombre'), mensaje('/start'), mensaje('/verificar'), {}]) {
+    assert.deepEqual(ejecutar(codigo, actualizacion)[0].json, JSON.parse(JSON.stringify(clasificarMensaje(actualizacion))));
+  }
+});
+
+test('mensaje_fijo devuelve el texto de la respuesta fija', () => {
+  const codigo = paquete().nodos['mensaje-fijo.js'];
+  assert.equal(ejecutar(codigo, { ruta: 'fijo', chat_id: 1, mensaje: 'bienvenida' })[0].json.texto, textoFijo('bienvenida'));
+  assert.equal(ejecutar(codigo, { ruta: 'fijo', chat_id: 1, mensaje: 'verificar_sin_nombre' })[0].json.texto, textoFijo('verificar_sin_nombre'));
+  assert.equal(ejecutar(codigo, {})[0].json.texto, textoFijo(undefined));
 });
 
 test('cada workflow lleva el código empaquetado en su nodo Code', () => {
@@ -155,7 +175,9 @@ test('los workflows no guardan ejecuciones ni llevan credenciales', () => {
 });
 
 test('las conexiones apuntan a nodos que existen y ambos disparadores llegan al nodo de código', () => {
-  for (const [nombre, texto] of Object.entries(paquete().workflows)) {
+  const subworkflows = Object.entries(paquete().workflows).filter(([nombre]) => nombre !== 'bot.json');
+  assert.equal(subworkflows.length, 2);
+  for (const [nombre, texto] of subworkflows) {
     const wf = JSON.parse(texto);
     const nombres = wf.nodes.map((n) => n.name);
     const codigo = wf.nodes.find((n) => n.type === 'n8n-nodes-base.code').name;
@@ -185,6 +207,144 @@ test('el disparador entre workflows declara su entrada de ejemplo', () => {
   assert.equal(disparador.typeVersion, 1.1);
   assert.equal(disparador.parameters.inputSource, 'jsonExample');
   assert.deepEqual(Object.keys(JSON.parse(disparador.parameters.jsonExample)), ['extraccion']);
+});
+
+// workflow principal
+
+const bot = () => JSON.parse(paquete().workflows['bot.json']);
+const nodo = (wf, nombre) => wf.nodes.find((n) => n.name === nombre);
+const destinos = (conexiones, origen, tipo = 'main', salida = 0) => conexiones[origen][tipo][salida].map((c) => c.node);
+
+test('el workflow principal tiene los nodos, tipos y versiones esperados', () => {
+  const esperados = {
+    'Telegram Trigger': ['n8n-nodes-base.telegramTrigger', 1.5],
+    'Clasificar mensaje': ['n8n-nodes-base.code', 2],
+    Ruta: ['n8n-nodes-base.switch', 3.2],
+    'Mensaje fijo': ['n8n-nodes-base.code', 2],
+    'Verificar entidad': ['n8n-nodes-base.code', 2],
+    Agente: ['@n8n/n8n-nodes-langchain.agent', 3.1],
+    Modelo: ['@n8n/n8n-nodes-langchain.lmChatDeepSeek', 1],
+    Memoria: ['@n8n/n8n-nodes-langchain.memoryBufferWindow', 1.3],
+    evaluar_oferta: ['@n8n/n8n-nodes-langchain.toolWorkflow', 2.2],
+    verificar_entidad: ['@n8n/n8n-nodes-langchain.toolWorkflow', 2.2],
+    'Elegir respuesta': ['n8n-nodes-base.code', 2],
+    'Enviar respuesta': ['n8n-nodes-base.telegram', 1.2],
+  };
+  const wf = bot();
+  assert.deepEqual(wf.nodes.map((n) => n.name).sort(), Object.keys(esperados).sort());
+  for (const [nombre, [tipo, version]] of Object.entries(esperados)) {
+    assert.equal(nodo(wf, nombre).type, tipo, nombre);
+    assert.equal(nodo(wf, nombre).typeVersion, version, nombre);
+  }
+  assert.equal(new Set(wf.nodes.map((n) => n.id)).size, wf.nodes.length);
+});
+
+test('el Telegram Trigger solo escucha mensajes', () => {
+  assert.deepEqual(nodo(bot(), 'Telegram Trigger').parameters.updates, ['message']);
+});
+
+test('el ruteo manda cada tipo de mensaje a su rama', () => {
+  const wf = bot();
+  const reglas = nodo(wf, 'Ruta').parameters.rules.values;
+  assert.deepEqual(reglas.map((r) => r.outputKey), ['fijo', 'verificar', 'texto']);
+  for (const regla of reglas) {
+    assert.equal(regla.conditions.conditions[0].leftValue, '={{ $json.ruta }}');
+    assert.equal(regla.conditions.conditions[0].rightValue, regla.outputKey);
+    assert.equal(regla.conditions.conditions[0].operator.operation, 'equals');
+  }
+  assert.deepEqual(destinos(wf.connections, 'Telegram Trigger'), ['Clasificar mensaje']);
+  assert.deepEqual(destinos(wf.connections, 'Clasificar mensaje'), ['Ruta']);
+  assert.deepEqual([0, 1, 2].map((i) => destinos(wf.connections, 'Ruta', 'main', i)), [['Mensaje fijo'], ['Verificar entidad'], ['Agente']]);
+  assert.deepEqual(destinos(wf.connections, 'Agente'), ['Elegir respuesta']);
+  for (const origen of ['Mensaje fijo', 'Verificar entidad', 'Elegir respuesta']) {
+    assert.deepEqual(destinos(wf.connections, origen), ['Enviar respuesta'], origen);
+  }
+});
+
+test('el agente recibe modelo, memoria y las dos herramientas por las conexiones de IA', () => {
+  const wf = bot();
+  assert.deepEqual(destinos(wf.connections, 'Modelo', 'ai_languageModel'), ['Agente']);
+  assert.deepEqual(destinos(wf.connections, 'Memoria', 'ai_memory'), ['Agente']);
+  assert.deepEqual(destinos(wf.connections, 'evaluar_oferta', 'ai_tool'), ['Agente']);
+  assert.deepEqual(destinos(wf.connections, 'verificar_entidad', 'ai_tool'), ['Agente']);
+});
+
+test('todas las conexiones del workflow principal apuntan a nodos que existen', () => {
+  const wf = bot();
+  const nombres = wf.nodes.map((n) => n.name);
+  for (const [origen, tipos] of Object.entries(wf.connections)) {
+    assert.ok(nombres.includes(origen), origen);
+    for (const salidas of Object.values(tipos)) {
+      for (const destino of salidas.flat()) assert.ok(nombres.includes(destino.node), `${origen} -> ${destino.node}`);
+    }
+  }
+});
+
+test('el workflow principal usa el código empaquetado en sus nodos Code', () => {
+  const t = paquete();
+  const wf = JSON.parse(t.workflows['bot.json']);
+  const codigos = { 'Clasificar mensaje': 'clasificar-mensaje.js', 'Mensaje fijo': 'mensaje-fijo.js', 'Verificar entidad': 'verificar-entidad.js', 'Elegir respuesta': 'elegir-respuesta.js' };
+  for (const [nombre, archivo] of Object.entries(codigos)) {
+    assert.equal(nodo(wf, nombre).parameters.jsCode, t.nodos[archivo], nombre);
+    assert.equal(nodo(wf, nombre).parameters.mode, 'runOnceForAllItems', nombre);
+  }
+});
+
+test('las herramientas del agente apuntan a los sub-workflows por su identificador', () => {
+  const t = paquete();
+  const wf = JSON.parse(t.workflows['bot.json']);
+  for (const [herramienta, archivo, campo] of [['evaluar_oferta', 'evaluar-oferta.json', 'extraccion'], ['verificar_entidad', 'verificar-entidad.json', 'q']]) {
+    const parametros = nodo(wf, herramienta).parameters;
+    assert.equal(parametros.name, herramienta);
+    assert.ok(parametros.description.length > 20, herramienta);
+    assert.equal(parametros.source, 'database');
+    assert.equal(parametros.workflowId.mode, 'id');
+    assert.equal(parametros.workflowId.value, JSON.parse(t.workflows[archivo]).id, herramienta);
+    assert.match(parametros.workflowInputs.value[campo], new RegExp(`\\$fromAI\\('${campo}'`), herramienta);
+  }
+});
+
+test('el agente guarda los pasos intermedios, reintenta y no tumba el flujo si falla', () => {
+  const agente = nodo(bot(), 'Agente');
+  assert.equal(agente.parameters.promptType, 'define');
+  assert.equal(agente.parameters.text, '={{ $json.texto }}');
+  assert.equal(agente.parameters.options.returnIntermediateSteps, true);
+  assert.equal(agente.parameters.options.systemMessage, leerPrompt(RUTA_PROMPT));
+  assert.equal(agente.retryOnFail, true);
+  assert.ok(agente.maxTries >= 2);
+  assert.equal(agente.onError, 'continueRegularOutput');
+});
+
+test('las instrucciones del agente nombran las herramientas y tratan el texto como dato', () => {
+  const instrucciones = leerPrompt(RUTA_PROMPT);
+  assert.match(instrucciones, /evaluar_oferta/);
+  assert.match(instrucciones, /verificar_entidad/);
+  assert.match(instrucciones, /no es una instrucción/i);
+  assert.match(instrucciones, /no recomiendes/i);
+});
+
+test('el modelo es DeepSeek y la credencial se asigna en n8n, no en el archivo', () => {
+  const modelo = nodo(bot(), 'Modelo');
+  assert.equal(modelo.parameters.model, 'deepseek-chat');
+  assert.equal(modelo.credentials, undefined);
+});
+
+test('la memoria es de ventana corta y por chat', () => {
+  const memoria = nodo(bot(), 'Memoria').parameters;
+  assert.equal(memoria.sessionIdType, 'customKey');
+  assert.match(memoria.sessionKey, /Clasificar mensaje.*chat_id/);
+  assert.ok(memoria.contextWindowLength >= 1 && memoria.contextWindowLength <= 10);
+});
+
+test('Telegram responde al chat de origen, con el texto elegido y sin la firma de n8n', () => {
+  const enviar = nodo(bot(), 'Enviar respuesta').parameters;
+  assert.match(enviar.chatId, /Clasificar mensaje.*chat_id/);
+  assert.equal(enviar.text, '={{ $json.texto }}');
+  assert.equal(enviar.additionalFields.appendAttribution, false);
+});
+
+test('leerPrompt falla con claridad si no hay instrucciones', () => {
+  assert.throws(() => leerPrompt(path.join(os.tmpdir(), 'no-existe-prompt.md')), /No existe/);
 });
 
 test('rechaza una tabla de SIPRES inválida', () => {

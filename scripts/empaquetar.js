@@ -22,11 +22,13 @@ const RAIZ = path.resolve(__dirname, '..');
 const RUTA_TABLA = path.join(RAIZ, 'datos', 'procesado', 'sipres_entidades.json');
 const RUTA_NODOS = path.join(RAIZ, 'n8n', 'nodos');
 const RUTA_WORKFLOWS = path.join(RAIZ, 'n8n', 'workflows');
+const RUTA_PROMPT = path.join(RAIZ, 'n8n', 'prompts', 'agente-system.md');
 
 const MODULOS = {
   evaluar: ['sipres/sipres', 'calculo/calculo', 'semaforo/semaforo', 'extraccion/validar-extraccion', 'respuesta/respuesta', 'flujo/procesar'],
   verificar: ['sipres/sipres', 'respuesta/respuesta'],
-  elegir: ['respuesta/respuesta'],
+  elegir: ['respuesta/respuesta', 'flujo/salida'],
+  mensaje: ['respuesta/respuesta', 'flujo/mensaje'],
 };
 
 const PRELUDIO = `const __fabricas = {};
@@ -85,9 +87,17 @@ const resultado = __cargar('sipres/sipres').buscarEntidad(TABLA_SIPRES, { nombre
 const texto = __cargar('respuesta/respuesta').mensajes.verificacion(resultado);
 return [{ json: { ...resultado, texto } }];`;
 
+// La salida del nodo Agente trae `output` y, con returnIntermediateSteps, `intermediateSteps`. Si el agente falló
+// y el nodo sigue en modo "continuar", trae `error`.
 const cuerpoElegir = () => `const entrada = $input.first().json || {};
-const resultado = __cargar('respuesta/respuesta').elegirRespuesta(entrada.texto, entrada.ctx || null);
+const resultado = __cargar('flujo/salida').elegirSalida({ texto: entrada.output, pasos: entrada.intermediateSteps, error: entrada.error });
 return [{ json: resultado }];`;
+
+const cuerpoClasificar = () => `const entrada = $input.first().json || {};
+return [{ json: __cargar('flujo/mensaje').clasificarMensaje(entrada) }];`;
+
+const cuerpoMensajeFijo = () => `const entrada = $input.first().json || {};
+return [{ json: { texto: __cargar('flujo/mensaje').textoFijo(entrada.mensaje) } }];`;
 
 // Datos de ejemplo para la prueba manual de cada workflow. Son inventados: no hay datos de personas.
 const EXTRACCION_EJEMPLO = {
@@ -126,13 +136,23 @@ const identificador = (...partes) => {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20, 32)}`;
 };
 
+const idWorkflow = (clave) => crypto.createHash('sha1').update(clave).digest('hex').slice(0, 16);
+
+const AJUSTES = {
+  executionOrder: 'v1',
+  saveDataErrorExecution: 'none',
+  saveDataSuccessExecution: 'none',
+  saveManualExecutions: false,
+  saveExecutionProgress: false,
+};
+
 /** Workflow que otro workflow (o una herramienta del agente) puede llamar, con una prueba manual que ya trae datos. */
 function construirWorkflow({ nombre, clave, nombreNodo, campos, ejemplo, codigo }) {
   const disparador = 'Cuando lo llama otro workflow';
   const prueba = 'Prueba manual';
   const hacia = [[{ node: nombreNodo, type: 'main', index: 0 }]];
   const workflow = {
-    id: crypto.createHash('sha1').update(clave).digest('hex').slice(0, 16),
+    id: idWorkflow(clave),
     name: nombre,
     nodes: [
       {
@@ -156,19 +176,144 @@ function construirWorkflow({ nombre, clave, nombreNodo, campos, ejemplo, codigo 
     connections: { [disparador]: { main: hacia }, [prueba]: { main: hacia } },
     pinData: { [prueba]: [{ json: ejemplo }] },
     active: false,
-    settings: {
-      executionOrder: 'v1',
-      saveDataErrorExecution: 'none',
-      saveDataSuccessExecution: 'none',
-      saveManualExecutions: false,
-      saveExecutionProgress: false,
+    settings: { ...AJUSTES },
+  };
+  return JSON.stringify(workflow, null, 2) + '\n';
+}
+
+const DESCRIPCION_EVALUAR =
+  'Calcula el costo real, el CAT estimado y el semáforo de una oferta de crédito o de una etiqueta de tienda a abonos. ' +
+  'Recibe en "extraccion" el objeto JSON con los datos extraídos del texto de la persona. ' +
+  'Devuelve el resultado ya calculado o la pregunta que falta.';
+const DESCRIPCION_VERIFICAR =
+  'Busca una entidad por nombre en la tabla de SIPRES de Condusef. Recibe en "q" el nombre de la entidad. ' +
+  'Devuelve su estado, la fecha de consulta y el mensaje para la persona.';
+const AYUDA_CAMPO = { extraccion: 'texto JSON con los datos extraídos de la oferta', q: 'nombre de la entidad a buscar' };
+
+const nodoCodigo = (nombre, codigo, posicion) => ({
+  parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: codigo },
+  id: identificador('bot', nombre),
+  name: nombre,
+  type: 'n8n-nodes-base.code',
+  typeVersion: 2,
+  position: posicion,
+});
+
+function nodoHerramienta({ nombre, descripcion, subworkflow, campo, posicion }) {
+  return {
+    parameters: {
+      name: nombre,
+      description: descripcion,
+      source: 'database',
+      workflowId: { __rl: true, value: idWorkflow(subworkflow), mode: 'id' },
+      workflowInputs: {
+        mappingMode: 'defineBelow',
+        value: { [campo]: `={{ $fromAI('${campo}', '${AYUDA_CAMPO[campo]}', 'string') }}` },
+        matchingColumns: [],
+        schema: [{ id: campo, displayName: campo, required: false, defaultMatch: false, display: true, canBeUsedToMatch: true, type: 'string', removed: false }],
+        attemptToConvertTypes: false,
+        convertFieldsToString: false,
+      },
     },
+    id: identificador('bot', nombre),
+    name: nombre,
+    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+    typeVersion: 2.2,
+    position: posicion,
+  };
+}
+
+const reglaDeRuta = (salida) => ({
+  conditions: {
+    options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+    conditions: [{ id: identificador('bot', 'regla', salida), leftValue: '={{ $json.ruta }}', rightValue: salida, operator: { type: 'string', operation: 'equals' } }],
+    combinator: 'and',
+  },
+  renameOutput: true,
+  outputKey: salida,
+});
+
+const hacia = (...nodos) => nodos.map((node, i) => [{ node, type: 'main', index: i }]);
+const aIA = (tipo) => ({ [tipo]: [[{ node: 'Agente', type: tipo, index: 0 }]] });
+
+/**
+ * Workflow principal del bot: Telegram, ruteo, agente con sus herramientas y verificador final.
+ * Sin credenciales: se asignan en n8n (Telegram y DeepSeek). El modelo debe soportar llamadas a herramientas.
+ */
+function construirBot({ codigos, instrucciones }) {
+  // Cada ejecución procesa una sola actualización de Telegram: `.first()` no depende del emparejamiento de ítems.
+  const alChat = "={{ $('Clasificar mensaje').first().json.chat_id }}";
+  const nodos = [
+    { parameters: { updates: ['message'], additionalFields: {} }, id: identificador('bot', 'Telegram Trigger'), name: 'Telegram Trigger', type: 'n8n-nodes-base.telegramTrigger', typeVersion: 1.5, position: [0, 300], webhookId: identificador('bot', 'webhook') },
+    nodoCodigo('Clasificar mensaje', codigos.clasificar, [260, 300]),
+    {
+      parameters: { rules: { values: ['fijo', 'verificar', 'texto'].map(reglaDeRuta) }, options: {} },
+      id: identificador('bot', 'Ruta'),
+      name: 'Ruta',
+      type: 'n8n-nodes-base.switch',
+      typeVersion: 3.2,
+      position: [520, 300],
+    },
+    nodoCodigo('Mensaje fijo', codigos.mensajeFijo, [800, 100]),
+    nodoCodigo('Verificar entidad', codigos.verificar, [800, 300]),
+    {
+      parameters: { promptType: 'define', text: '={{ $json.texto }}', options: { systemMessage: instrucciones, returnIntermediateSteps: true, maxIterations: 6 } },
+      id: identificador('bot', 'Agente'),
+      name: 'Agente',
+      type: '@n8n/n8n-nodes-langchain.agent',
+      typeVersion: 3.1,
+      position: [800, 520],
+      retryOnFail: true,
+      maxTries: 2,
+      waitBetweenTries: 1000,
+      onError: 'continueRegularOutput',
+    },
+    { parameters: { model: 'deepseek-chat', options: {} }, id: identificador('bot', 'Modelo'), name: 'Modelo', type: '@n8n/n8n-nodes-langchain.lmChatDeepSeek', typeVersion: 1, position: [700, 760] },
+    {
+      parameters: { sessionIdType: 'customKey', sessionKey: alChat, contextWindowLength: 6 },
+      id: identificador('bot', 'Memoria'),
+      name: 'Memoria',
+      type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
+      typeVersion: 1.3,
+      position: [860, 760],
+    },
+    nodoHerramienta({ nombre: 'evaluar_oferta', descripcion: DESCRIPCION_EVALUAR, subworkflow: 'evaluar-oferta', campo: 'extraccion', posicion: [1020, 760] }),
+    nodoHerramienta({ nombre: 'verificar_entidad', descripcion: DESCRIPCION_VERIFICAR, subworkflow: 'verificar-entidad', campo: 'q', posicion: [1180, 760] }),
+    nodoCodigo('Elegir respuesta', codigos.elegir, [1100, 520]),
+    {
+      parameters: { chatId: alChat, text: '={{ $json.texto }}', additionalFields: { appendAttribution: false } },
+      id: identificador('bot', 'Enviar respuesta'),
+      name: 'Enviar respuesta',
+      type: 'n8n-nodes-base.telegram',
+      typeVersion: 1.2,
+      position: [1400, 300],
+    },
+  ];
+  const workflow = {
+    id: idWorkflow('bot'),
+    name: 'Crédito Claro · bot',
+    nodes: nodos,
+    connections: {
+      'Telegram Trigger': { main: hacia('Clasificar mensaje') },
+      'Clasificar mensaje': { main: hacia('Ruta') },
+      Ruta: { main: [[{ node: 'Mensaje fijo', type: 'main', index: 0 }], [{ node: 'Verificar entidad', type: 'main', index: 0 }], [{ node: 'Agente', type: 'main', index: 0 }]] },
+      'Mensaje fijo': { main: hacia('Enviar respuesta') },
+      'Verificar entidad': { main: hacia('Enviar respuesta') },
+      Agente: { main: hacia('Elegir respuesta') },
+      'Elegir respuesta': { main: hacia('Enviar respuesta') },
+      Modelo: aIA('ai_languageModel'),
+      Memoria: aIA('ai_memory'),
+      evaluar_oferta: aIA('ai_tool'),
+      verificar_entidad: aIA('ai_tool'),
+    },
+    active: false,
+    settings: { ...AJUSTES },
   };
   return JSON.stringify(workflow, null, 2) + '\n';
 }
 
 /** Construye en memoria todos los archivos generados. No escribe nada. */
-function construirTodo({ tablaSipres }) {
+function construirTodo({ tablaSipres, instrucciones = leerPrompt() }) {
   const problemas = validarTabla(tablaSipres);
   if (problemas.length > 0) throw new Error(`La tabla de SIPRES no es válida:\n${problemas.join('\n')}`);
 
@@ -176,6 +321,8 @@ function construirTodo({ tablaSipres }) {
     'evaluar-oferta.js': empaquetar({ nodo: 'Evaluar oferta', modulos: MODULOS.evaluar, cuerpo: cuerpoEvaluar(tablaSipres) }),
     'verificar-entidad.js': empaquetar({ nodo: 'Verificar entidad', modulos: MODULOS.verificar, cuerpo: cuerpoVerificar(tablaSipres) }),
     'elegir-respuesta.js': empaquetar({ nodo: 'Elegir respuesta', modulos: MODULOS.elegir, cuerpo: cuerpoElegir() }),
+    'clasificar-mensaje.js': empaquetar({ nodo: 'Clasificar mensaje', modulos: MODULOS.mensaje, cuerpo: cuerpoClasificar() }),
+    'mensaje-fijo.js': empaquetar({ nodo: 'Mensaje fijo', modulos: MODULOS.mensaje, cuerpo: cuerpoMensajeFijo() }),
   };
   const workflows = {
     'evaluar-oferta.json': construirWorkflow({
@@ -194,8 +341,24 @@ function construirTodo({ tablaSipres }) {
       ejemplo: { q: 'Entidad de ejemplo' },
       codigo: nodos['verificar-entidad.js'],
     }),
+    'bot.json': construirBot({
+      instrucciones,
+      codigos: {
+        clasificar: nodos['clasificar-mensaje.js'],
+        mensajeFijo: nodos['mensaje-fijo.js'],
+        verificar: nodos['verificar-entidad.js'],
+        elegir: nodos['elegir-respuesta.js'],
+      },
+    }),
   };
   return { nodos, workflows };
+}
+
+function leerPrompt(ruta = RUTA_PROMPT) {
+  if (!fs.existsSync(ruta)) throw new Error(`No existe el archivo de instrucciones del agente: ${ruta}`);
+  const texto = fs.readFileSync(ruta, 'utf8').replace(/\r\n/g, '\n').trim();
+  if (!texto) throw new Error(`El archivo de instrucciones del agente está vacío: ${ruta}`);
+  return texto;
 }
 
 function leerTabla(ruta = RUTA_TABLA) {
@@ -246,4 +409,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { construirTodo, leerTabla, RAIZ, RUTA_TABLA, RUTA_NODOS, RUTA_WORKFLOWS };
+module.exports = { construirTodo, leerTabla, leerPrompt, RAIZ, RUTA_TABLA, RUTA_NODOS, RUTA_WORKFLOWS, RUTA_PROMPT };

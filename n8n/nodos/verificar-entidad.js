@@ -343,6 +343,22 @@ function verificarRespuesta(texto, ctx) {
   return { ok: fallas.size === 0, fallas: Array.from(fallas) };
 }
 
+/**
+ * Verificación ligera de un texto que no viene de un cálculo (una pregunta, un saludo): sin cifras, sin
+ * colores de semáforo, sin enlaces ni palabras prohibidas. Lo que solo un cálculo puede decir se rechaza.
+ */
+function verificarConversacion(texto) {
+  if (typeof texto !== 'string' || !texto.trim()) return { ok: false, fallas: ['texto_vacio'] };
+  const fallas = new Set();
+  if (texto.length > MAX_CARACTERES) fallas.add('demasiado_largo');
+  if (texto.split('\n').filter((l) => l.trim()).length > MAX_LINEAS) fallas.add('demasiadas_lineas');
+  if (PROHIBIDAS.some((re) => re.test(normalizar(texto)))) fallas.add('palabra_prohibida');
+  if (patronPesos().test(texto) || patronPorcentaje().test(texto)) fallas.add('cifra_sin_calculo');
+  if (Object.values(EMOJI).some((e) => texto.includes(e))) fallas.add('color_sin_calculo');
+  if (patronEnlace().test(texto)) fallas.add('enlace_no_permitido');
+  return { ok: fallas.size === 0, fallas: Array.from(fallas) };
+}
+
 function elegirRespuesta(textoDelModelo, ctx) {
   if (!ctx) return { texto: mensajes.error(), origen: 'plantilla', motivo: 'sin_contexto', fallas: [] };
   const plantilla = plantillaDesdeContexto(ctx);
@@ -367,6 +383,7 @@ const mensajes = {
   servicioNoDisponible: () => 'No pude analizar tu mensaje ahora. Puedes usar /verificar nombre de la entidad.',
   error: () => 'No pude procesar tu mensaje. Intenta de nuevo con el texto completo de la oferta.',
   cobranza: () => 'Parece un mensaje de cobranza. Por ahora solo reviso ofertas de crédito y etiquetas de tienda.',
+  verificarSinNombre: () => 'Escribe /verificar y el nombre de la entidad, por ejemplo: /verificar Nombre de la entidad.',
   aclaracion: (preguntas) => {
     const lista = (Array.isArray(preguntas) ? preguntas : []).filter((p) => typeof p === 'string' && p.trim()).slice(0, MAX_PREGUNTAS);
     if (lista.length === 0) return 'Necesito un poco más de información para calcular. ¿Me compartes el texto completo de la oferta?';
@@ -395,6 +412,7 @@ module.exports = {
   armarContexto,
   plantillaDesdeContexto,
   verificarRespuesta,
+  verificarConversacion,
   elegirRespuesta,
   mensajes,
   AVISO_CAT,
