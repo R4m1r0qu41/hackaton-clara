@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan de build de Crédito Claro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Plan: documento técnico de equipo. Índice fijo a la izquierda, texto a 72ch, diagramas anchos con scroll propio. */
+:root{
+  --bg:#f2f6f5; --surface:#ffffff; --ink:#13201e; --muted:#4d5f5b; --line:#d3dedb; --line-strong:#9db1ac;
+  --accent:#0b6e5f; --accent-wash:#e1f2ee; --warn-wash:#fff3d1; --code-bg:#eaf0ee; --warn:#a96a00;
+  --font-display:'Familjen Grotesk',system-ui,sans-serif; --font-body:'IBM Plex Sans',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1514; --surface:#14201e; --ink:#e4eeec; --muted:#9db1ad; --line:#243633; --line-strong:#41584f;
+    --accent:#45c8b0; --accent-wash:#10332d; --warn-wash:#3a3115; --code-bg:#1a2927; --warn:#e0a63b; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1514; --surface:#14201e; --ink:#e4eeec; --muted:#9db1ad; --line:#243633; --line-strong:#41584f;
+  --accent:#45c8b0; --accent-wash:#10332d; --warn-wash:#3a3115; --code-bg:#1a2927; --warn:#e0a63b; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--font-body)}
+a{color:var(--accent)}
+.shell{display:grid;grid-template-columns:210px minmax(0,1fr);gap:40px;max-width:1240px;margin:0 auto;padding:32px 20px 80px}
+nav.toc{position:sticky;top:24px;align-self:start;font-size:14px}
+nav.toc p{margin:0 0 10px;font:600 12px var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+nav.toc a{display:block;padding:5px 0 5px 12px;border-left:2px solid var(--line);color:var(--muted);text-decoration:none}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--ink);border-left-color:var(--accent)}
+main{min-width:0}
+header.top{padding:4px 0 28px;border-bottom:1px solid var(--line);margin-bottom:8px}
+header.top .tag{display:inline-block;font:600 12px var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-wash);padding:3px 10px;border-radius:999px}
+h1{font:700 clamp(30px,5vw,44px)/1.1 var(--font-display);margin:14px 0 10px;text-wrap:balance}
+header.top p{margin:0;max-width:72ch;color:var(--muted)}
+h2{font:600 26px/1.2 var(--font-display);margin:0 0 14px;text-wrap:balance}
+h3{font:600 18px/1.3 var(--font-display);margin:26px 0 8px}
+section{padding:36px 0 8px;border-top:1px solid var(--line);margin-top:28px;scroll-margin-top:12px}
+header.top + section{border-top:0;margin-top:0}
+p,li{max-width:72ch}
+ul,ol{padding-left:22px}
+li{margin:4px 0}
+code{font:400 .88em var(--font-mono);background:var(--code-bg);padding:1px 6px;border-radius:4px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:10px 0 18px;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:14.5px;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:10px 0 18px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font:600 12px var(--font-display);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--code-bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td:first-child{white-space:nowrap}
+table.wrapfirst td:first-child{white-space:normal}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h3{margin:0 0 6px;font-size:16px}
+.card p{margin:0;font-size:14.5px;color:var(--muted)}
+.callout{background:var(--warn-wash);border-left:4px solid var(--warn);border-radius:6px;padding:12px 16px;margin:16px 0;max-width:76ch}
+.callout.ok{background:var(--accent-wash);border-left-color:var(--accent)}
+.callout p{margin:0}
+.ep{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.ep h3{margin:0 0 4px;font:500 16px var(--font-mono)}
+.ep h3 span{display:inline-block;font:600 12px var(--font-display);letter-spacing:.05em;background:var(--accent);color:var(--bg);padding:2px 8px;border-radius:4px;margin-right:8px;vertical-align:1px}
+.ep p{margin:4px 0 8px;color:var(--muted);font-size:14.5px}
+.ep pre{margin:6px 0 8px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.pair > div{min-width:0}
+.pair b{font:600 12px var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+figure.diagram{margin:18px 0 26px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure.diagram svg{display:block;width:100%;min-width:760px;height:auto;max-width:none;color:var(--ink)}
+figcaption{margin-top:10px;font-size:14px;color:var(--muted);max-width:80ch}
+.note-ill{font-size:13.5px;color:var(--muted)}
+.sq-box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+.sq-core{fill:var(--accent-wash);stroke:var(--accent);stroke-width:1.6}
+.sq-n8n{fill:var(--warn-wash);stroke:var(--warn);stroke-width:1.4}
+.sq-zone{fill:none;stroke:var(--line-strong);stroke-width:1.4;stroke-dasharray:6 5}
+.sq-zt{font:600 12px var(--font-display);fill:var(--muted);letter-spacing:.04em}
+.sq-life{stroke:var(--line-strong);stroke-width:1;stroke-dasharray:3 5}
+.sq-arrow{stroke:currentColor;stroke-width:1.3;fill:none}
+.sq-ret{stroke-dasharray:6 3}
+.sq-sep{stroke:var(--accent);stroke-width:1;stroke-dasharray:5 4}
+.sq-frame{fill:var(--accent-wash);stroke:var(--accent);stroke-width:1;opacity:.6}
+.sq-note{fill:var(--warn-wash);stroke:var(--line-strong);stroke-width:1}
+.sq-t{font:400 11.5px var(--font-body);fill:currentColor;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.sq-fl{font-weight:600;fill:var(--accent);font-size:11px}
+.sq-nt{font-style:italic}
+.sq-h{font:600 12.5px var(--font-display);fill:currentColor}
+.sq-sub,.sq-sub2{font:400 10px var(--font-body);fill:var(--muted)}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:0;padding:20px 16px 60px}
+  nav.toc{position:static;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:4px 14px}
+  nav.toc p{width:100%}
+  nav.toc a{border-left:0;padding:2px 0}
+  td:first-child{white-space:normal}
+}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc" aria-label="Índice"><p>Plan de build</p><a href="#resumen">Resumen</a><a href="#existe">Qué existe y qué se agrega</a><a href="#arquitectura">Arquitectura</a><a href="#endpoints">Endpoints</a><a href="#n8n">Cambio en n8n</a><a href="#flujos">Secuencias</a><a href="#datos">Datos y carpetas</a><a href="#equipo-1">Equipo 1</a><a href="#equipo-2">Equipo 2</a><a href="#prs">Reglas de PR</a><a href="#errores">Errores y respaldos</a><a href="#abiertas">Decisiones abiertas</a></nav>
+<main>
+
+<header class="top">
+  <span class="tag">Propuesta para aprobar · v3 · 30/10/2026</span>
+  <h1>Plan de build de Crédito Claro</h1>
+  <p>El trabajo ocurre en <b>Julio-Cuellar/cuentasClaras</b>, por pull requests, con cuatro personas en dos equipos de dos. El repo ya tiene el motor: extracción, cálculo, semáforo, SIPRES, Banxico y respuesta con verificador. El plan agrega un servidor pequeño en Node.js, la página, el mapa y un cambio de dos nodos en n8n.</p>
+</header>
+
+<section id="resumen">
+  <h2>Resumen</h2>
+  <div class="cards">
+    <div class="card"><h3>Se reutiliza el motor</h3><p>No se reescribe nada. El servidor hace <code>require</code> de los módulos que ya tienen pruebas. Todo el repo es CommonJS y el servidor también.</p></div>
+    <div class="card"><h3>n8n cambia solo dos nodos</h3><p>Los nodos Code "Procesar" y "Elegir respuesta" pasan a HTTP Request hacia el servidor. El resto del flujo de <code>GUIA-N8N.md</code> sigue igual, y el flujo actual queda como respaldo.</p></div>
+    <div class="card"><h3>La página usa el mismo motor</h3><p><code>/api/consulta</code> corre la misma cadena en el servidor, así que la página no depende de n8n.</p></div>
+    <div class="card"><h3>Sin base de datos</h3><p>Dos archivos JSON capturados a mano en <code>datos/procesado/</code>. Python no entra: el repo es Node.js de punta a punta.</p></div>
+  </div>
+  <div class="callout ok"><p><b>Entrada de P0:</b> una persona pega el texto de una oferta o etiqueta; el modelo lo extrae y <code>procesar()</code> calcula, asigna el semáforo y verifica la entidad. Además: verificar una entidad por nombre, la página y el mapa. La selección guiada por productos reales queda como P1.</p></div>
+  <p class="note-ill">Este plan sustituye a las versiones anteriores del artefacto. La documentación de <code>credito_claro</code> (por ejemplo <code>plan-equipo.md</code> y <code>scope-equipo.md</code>) quedó desactualizada.</p>
+</section>
+
+<section id="existe">
+  <h2>Qué existe y qué se agrega</h2>
+  <h3>Ya está en el repo</h3>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Carpeta</th><th>Qué hace</th><th>Pruebas</th></tr></thead><tbody><tr><td><code>extraccion/</code></td><td>Esquema JSON, prompt de extracción y <code>validarExtraccion()</code>. Normaliza números, detecta faltantes y pide aclaraciones.</td><td><code>validar-extraccion.test.js</code></td></tr><tr><td><code>calculo/</code></td><td><code>calcular()</code>: costo total, sobrecosto y CAT implícito estimado; alternativa de ahorro en CETES.</td><td><code>calculo.test.js</code></td></tr><tr><td><code>semaforo/</code></td><td><code>semaforo()</code>: color y razones con hechos. Umbrales propuestos: tienda 15% y 50%, préstamo costo desde 50%. Sin SIPRES verificado da gris, nunca rojo.</td><td><code>semaforo.test.js</code></td></tr><tr><td><code>sipres/</code></td><td><code>buscarEntidad()</code> y <code>validarTabla()</code> con los tres estados. La tabla se captura a mano.</td><td><code>sipres.test.js</code></td></tr><tr><td><code>banxico/</code></td><td><code>tasaCetes()</code> con respaldo local (6.22 al 29/10/2026) si la API falla.</td><td><code>banxico.test.js</code></td></tr><tr><td><code>respuesta/</code></td><td>Contexto para el modelo, plantillas, <code>verificarRespuesta()</code> y <code>elegirRespuesta()</code> (modelo o plantilla).</td><td><code>respuesta.test.js</code></td></tr><tr><td><code>flujo/procesar.js</code></td><td>Orquesta todo el cálculo. Devuelve <code>accion: "responder"</code> o <code>"redactar"</code>.</td><td><code>procesar.test.js</code>, <code>empaquetado.test.js</code></td></tr><tr><td><code>n8n/</code></td><td>Guía para armar el flujo y dos nodos Code generados con <code>scripts/empaquetar.js</code>.</td><td>—</td></tr></tbody></table></div>
+  <p class="note-ill">La guía de n8n menciona 157 pruebas en verde. No las ejecuté.</p>
+  <h3>Se agrega</h3>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Pieza</th><th>Qué es</th><th>Quién</th></tr></thead><tbody><tr><td>Servidor Node.js</td><td>Envuelve los módulos con <code>require</code>. Unas 50 líneas para los dos endpoints de n8n; más para consulta, verificar y acceso.</td><td>Equipo 1</td></tr><tr><td><code>/api/verificar</code></td><td>Búsqueda de entidad con <code>sipres.js</code> para la página y para el comando <code>/verificar</code> del bot.</td><td>Equipo 1</td></tr><tr><td><code>/api/consulta</code></td><td>La misma cadena del flujo, pero orquestada en el servidor con OpenRouter, para que la página no dependa de n8n.</td><td>Equipo 1</td></tr><tr><td>Página HTML</td><td>Pegar una oferta, ver color, texto y fuente; buscar una entidad; mapa.</td><td>Equipo 2</td></tr><tr><td>Mapa por estado</td><td>Indicador oficial con periodo y fuente; sin dato, gráfico de barras.</td><td>Equipo 2</td></tr><tr><td>Cambio en n8n</td><td>Dos nodos Code pasan a HTTP Request; se agrega la rama <code>/verificar</code>. El flujo actual queda como respaldo.</td><td>Equipo 2</td></tr><tr><td>Datos</td><td><code>sipres_entidades.json</code> y <code>acceso_estados.json</code>, verificados por JR.</td><td>Equipos 1 y 2</td></tr></tbody></table></div>
+</section>
+
+<section id="arquitectura">
+  <h2>Arquitectura</h2>
+  <figure class="diagram"><div class="scroll"><svg viewBox="0 0 1080 400" width="1080" height="400" role="img" aria-label="Arquitectura: n8n conserva Telegram, extracción, CETES y redacción, y llama al servidor solo en los dos nodos de cálculo; la página usa el endpoint de consulta; todo reutiliza los módulos existentes"><defs><marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs><rect class="sq-zone" x="640" y="14" width="420" height="372" rx="10"/><text class="sq-zt" x="656" y="36">Servidor Node.js (nuevo, CommonJS)</text><rect class="sq-box" x="20" y="60" width="100" height="50" rx="6"/><text class="sq-h" x="70" y="81.5" text-anchor="middle">Usuario</text><text class="sq-sub2" x="70" y="96.5" text-anchor="middle">Telegram</text><rect class="sq-box" x="150" y="60" width="100" height="50" rx="6"/><text class="sq-h" x="200" y="81.5" text-anchor="middle">Telegram</text><text class="sq-sub2" x="200" y="96.5" text-anchor="middle">Bot API</text><rect class="sq-box sq-n8n" x="290" y="40" width="160" height="100" rx="6"/><text class="sq-h" x="370" y="79" text-anchor="middle">n8n</text><text class="sq-sub2" x="370" y="94" text-anchor="middle">Telegram y extracción</text><text class="sq-sub2" x="370" y="109" text-anchor="middle">CETES y redacción</text><rect class="sq-box" x="290" y="230" width="110" height="46" rx="6"/><text class="sq-h" x="345" y="249.5" text-anchor="middle">Banxico SIE</text><text class="sq-sub2" x="345" y="264.5" text-anchor="middle">CETES</text><rect class="sq-box" x="420" y="230" width="120" height="46" rx="6"/><text class="sq-h" x="480" y="249.5" text-anchor="middle">OpenRouter</text><text class="sq-sub2" x="480" y="264.5" text-anchor="middle">DeepSeek</text><rect class="sq-box" x="20" y="270" width="110" height="50" rx="6"/><text class="sq-h" x="75" y="291.5" text-anchor="middle">Usuario</text><text class="sq-sub2" x="75" y="306.5" text-anchor="middle">navegador móvil</text><rect class="sq-box" x="660" y="110" width="150" height="190" rx="6"/><text class="sq-h" x="735" y="171.5" text-anchor="middle">server/http</text><text class="sq-sub2" x="735" y="186.5" text-anchor="middle">/api/procesar</text><text class="sq-sub2" x="735" y="201.5" text-anchor="middle">/api/elegir-respuesta</text><text class="sq-sub2" x="735" y="216.5" text-anchor="middle">/api/verificar</text><text class="sq-sub2" x="735" y="231.5" text-anchor="middle">/api/consulta</text><text class="sq-sub2" x="735" y="246.5" text-anchor="middle">/api/acceso*</text><rect class="sq-box sq-core" x="840" y="100" width="200" height="130" rx="6"/><text class="sq-h" x="940" y="146.5" text-anchor="middle">Módulos que ya existen</text><text class="sq-sub2" x="940" y="161.5" text-anchor="middle">flujo/procesar · respuesta</text><text class="sq-sub2" x="940" y="176.5" text-anchor="middle">sipres · calculo · semaforo</text><text class="sq-sub2" x="940" y="191.5" text-anchor="middle">banxico · extraccion</text><rect class="sq-box" x="840" y="290" width="200" height="56" rx="6"/><text class="sq-h" x="940" y="314.5" text-anchor="middle">datos/procesado/*.json</text><text class="sq-sub2" x="940" y="329.5" text-anchor="middle">SIPRES y acceso por estado</text><line class="sq-arrow" x1="120" y1="85" x2="150" y2="85" marker-end="url(#ar-a)"/><line class="sq-arrow" x1="250" y1="85" x2="290" y2="85" marker-end="url(#ar-a)"/><line class="sq-arrow" x1="450" y1="72" x2="660" y2="72" marker-end="url(#ar-a)"/><text class="sq-t" x="555" y="64" text-anchor="middle">POST /api/procesar</text><line class="sq-arrow" x1="450" y1="98" x2="660" y2="98" marker-end="url(#ar-a)"/><text class="sq-t" x="555" y="114" text-anchor="middle">POST /api/elegir-respuesta</text><line class="sq-arrow" x1="345" y1="140" x2="345" y2="230" marker-end="url(#ar-a)"/><text class="sq-t" x="372" y="190" text-anchor="middle">CETES</text><line class="sq-arrow" x1="480" y1="140" x2="480" y2="230" marker-end="url(#ar-a)"/><text class="sq-t" x="480" y="185" text-anchor="middle">extraer y redactar</text><line class="sq-arrow" x1="660" y1="253" x2="540" y2="253" marker-end="url(#ar-a)"/><text class="sq-t" x="600" y="245" text-anchor="middle">consulta</text><line class="sq-arrow" x1="130" y1="295" x2="660" y2="295" marker-end="url(#ar-a)"/><text class="sq-t" x="395" y="287" text-anchor="middle">HTTP</text><line class="sq-arrow" x1="810" y1="165" x2="840" y2="165" marker-end="url(#ar-a)"/><line class="sq-arrow" x1="940" y1="230" x2="940" y2="290" marker-end="url(#ar-a)"/><text class="sq-t" x="956" y="263" text-anchor="middle">lee</text></svg></div><figcaption>n8n conserva Telegram, la extracción, CETES y la redacción, y llama al servidor solo en los dos nodos de cálculo. La página llama a <code>/api/consulta</code>, que repite la cadena en el servidor. Todo reutiliza los módulos que ya existen.</figcaption></figure>
+</section>
+
+<section id="endpoints">
+  <h2>Endpoints</h2>
+  <p>JSON en español. Las formas salen de lo que devuelven los módulos hoy: <code>procesar()</code> y <code>elegirRespuesta()</code>. Los ejemplos son ilustrativos y no son datos reales.</p>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Ruta</th><th>Qué hace</th><th>La consume</th></tr></thead><tbody><tr><td><code>GET /api/salud</code></td><td>Estado, si hay clave de IA y la fecha de los datos.</td><td>Página y n8n</td></tr><tr><td><code>POST /api/procesar</code></td><td>Envuelve <code>flujo/procesar.js</code>. Sustituye al nodo Code "Procesar".</td><td>n8n</td></tr><tr><td><code>POST /api/elegir-respuesta</code></td><td>Envuelve <code>respuesta.elegirRespuesta</code>. Sustituye al nodo Code "Elegir respuesta".</td><td>n8n</td></tr><tr><td><code>POST /api/consulta</code></td><td>Cadena completa con OpenRouter. En el primer PR devuelve una respuesta fija de ejemplo para desbloquear a la página.</td><td>Página (n8n opcional)</td></tr><tr><td><code>GET /api/verificar?q=</code></td><td>Estado SIPRES de una entidad, con fecha.</td><td>Página y n8n</td></tr><tr><td><code>GET /api/acceso/estados</code>, <code>GET /api/acceso?estado=</code></td><td>Indicador oficial por estado, periodo y fuente.</td><td>Página</td></tr></tbody></table></div>
+  <div class="ep"><h3><span>POST</span>/api/procesar</h3><p>Sustituye al nodo Code "Procesar". El servidor agrega la tabla SIPRES, la configuración y la fecha de hoy (formato por verificar en <code>flujo/procesar.test.js</code>).</p>
+    <div class="pair"><div><b>Entrada</b><pre><code>// n8n envía lo que ya tiene; el servidor agrega la tabla SIPRES, la config y la fecha
+{
+  "salidaLLM": { "…": "salida del nodo de extracción (texto o JSON)" },
+  "cetesRespuesta": { "…": "respuesta de Banxico, o null si falló" }
+}</code></pre></div><div><b>Salida 200</b><pre><code>// accion "responder": ya hay texto final (pregunta, cobranza, error)
+{ "accion": "responder", "texto": "…", "motivo": "cobranza",
+  "log": { "fecha": "…", "tipo_entrada": "cobranza", "semaforo": "n.a.", "estado_sipres": "n.a." },
+  "advertencias": [] }
+
+// accion "redactar": n8n pasa ctx al modelo de redacción
+{ "accion": "redactar", "ctx": { "…": "contexto para el LLM" }, "plantilla": "…",
+  "log": { "fecha": "…", "tipo_entrada": "oferta_credito", "semaforo": "gris", "estado_sipres": "sin_verificar" },
+  "advertencias": ["sipres:no_esta_en_tabla"] }</code></pre></div></div></div>
+  <div class="ep"><h3><span>POST</span>/api/elegir-respuesta</h3><p>Sustituye al nodo Code "Elegir respuesta".</p>
+    <div class="pair"><div><b>Entrada</b><pre><code>{ "textoLLM": "texto del modelo de redacción, o null si falló", "ctx": { "…": "el ctx de /api/procesar" } }</code></pre></div><div><b>Salida 200</b><pre><code>{ "texto": "…", "origen": "llm",        // "llm" | "plantilla"
+  "motivo": "ok",                                       // "verificacion_fallida" cuando cae a plantilla
+  "fallas": [] }</code></pre></div></div></div>
+  <div class="ep"><h3><span>POST</span>/api/consulta</h3><p>Para la página. Extrae, calcula, redacta y verifica en el servidor. En el primer PR devuelve una respuesta fija con <code>origen: "ejemplo"</code>.</p>
+    <div class="pair"><div><b>Entrada</b><pre><code>{ "texto": "Préstamo de $5,000, me depositan $4,200, 4 pagos quincenales de $1,600" }</code></pre></div><div><b>Salida 200</b><pre><code>{ "texto": "…", "origen": "llm",       // "llm" | "plantilla" | "ejemplo" (stub inicial)
+  "color": "amarillo",                                   // de log.semaforo; "n.a." si no hubo cálculo
+  "estado_sipres": "sin_verificar",
+  "motivo": "ok", "advertencias": [] }</code></pre></div></div></div>
+  <div class="ep"><h3><span>GET</span>/api/verificar</h3><p>La tabla se carga de <code>datos/procesado/sipres_entidades.json</code>.</p><pre><code>GET /api/verificar?q=entidad%20de%20ejemplo
+{ "estado": "registrada", "fecha_consulta": "30/10/2026", "terminos_buscados": ["…"],
+  "entidad": "Entidad de Ejemplo", "motivo": "ok", "advertencias": [] }
+// sin coincidencia: { "estado": "sin_verificar", "motivo": "no_esta_en_tabla", … }</code></pre></div>
+  <div class="ep"><h3><span>GET</span>/api/acceso/estados · /api/acceso?estado=</h3><p>Siempre indicador, periodo y fuente. Nunca cobertura por domicilio.</p><pre><code>GET /api/acceso/estados
+{ "indicador": "…", "unidad": "…", "periodo": "…", "fuente_url": "…",
+  "estados": [{ "estado_id": "…", "nombre": "…", "valor": null }] }   // null = desconocido, nunca 0
+
+GET /api/acceso?estado=&lt;estado_id&gt;
+{ "estado_id": "…", "nombre": "…", "indicador": "…", "valor": null, "periodo": "…", "fuente_url": "…" }</code></pre></div>
+  <div class="ep"><h3><span>GET</span>/api/salud · errores</h3><pre><code>{ "ok": true, "ia": false, "datos_al": "30/10/2026" }   // ia: hay clave de OpenRouter configurada
+
+{ "error": { "codigo": "entrada_invalida", "mensaje": "Falta el campo texto." } }
+// 400 entrada inválida · 401 clave del bot (X-Bot-Key) · 500 error propio
+// Una falla del modelo NO es un error: responde 200 con origen "plantilla".</code></pre></div>
+  <p>Los endpoints de n8n llevan una clave compartida en la cabecera <code>X-Bot-Key</code>, guardada como credencial de n8n y como variable de entorno del servidor, porque quedan expuestos por un túnel si n8n es remoto.</p>
+</section>
+
+<section id="n8n">
+  <h2>Cambio en n8n</h2>
+  <p>Se parte del flujo de <code>n8n/GUIA-N8N.md</code>. Solo cambian dos nodos y se agrega una rama.</p>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Nodos del flujo</th><th>Cambio</th><th>Nota</th></tr></thead><tbody><tr><td>Telegram Trigger, Tipo de mensaje, Preparar foto, Descargar foto</td><td>Sin cambio</td><td>Se agrega una salida <code>/verificar</code> en el Switch.</td></tr><tr><td>Extraer foto, Extraer texto, Redactar (LLM)</td><td>Sin cambio</td><td>Siguen en n8n con los prompts de los .md. La foto exige un modelo con visión (por verificar); el texto funciona con DeepSeek.</td></tr><tr><td>Leer CETES</td><td>Sin cambio</td><td>Si Banxico falla, el servidor usa el respaldo.</td></tr><tr><td>Procesar (Code)</td><td>HTTP Request <code>/api/procesar</code></td><td>Quita ~71 mil caracteres pegados en el nodo.</td></tr><tr><td>Elegir respuesta (Code)</td><td>HTTP Request <code>/api/elegir-respuesta</code></td><td>Con <code>Continue on error</code>: si el servidor falla, la rama de error envía un mensaje fijo.</td></tr><tr><td>Enviar respuesta, Log anónimo</td><td>Sin cambio</td><td>Los ajustes de privacidad de la guía (no guardar ejecuciones) siguen siendo obligatorios.</td></tr></tbody></table></div>
+  <pre><code>// Nodo "Procesar" (antes Code con ~71 mil caracteres pegados) → HTTP Request
+POST {BACKEND_URL}/api/procesar        cabecera X-Bot-Key (credencial)
+cuerpo: salidaLLM = la salida de "Extraer foto" o "Extraer texto"
+        cetesRespuesta = la salida de "Leer CETES"
+// Nodo "Elegir respuesta" (antes Code) → HTTP Request
+POST {BACKEND_URL}/api/elegir-respuesta
+cuerpo: textoLLM = la salida de "Redactar (LLM)", ctx = el ctx del paso anterior
+// Los nombres de nodo y las expresiones exactas: por verificar en el primer flujo real.</code></pre>
+  <div class="callout"><p>El flujo actual, con los dos nodos empaquetados, se exporta como <code>n8n/workflow-respaldo.json</code> y queda inactivo. Si el servidor o el túnel fallan durante la demo, se activa ese y el bot responde igual.</p></div>
+</section>
+
+<section id="flujos">
+  <h2>Secuencias</h2>
+  <h3>1 · Bot de Telegram con n8n</h3>
+  <figure class="diagram"><div class="scroll"><svg viewBox="0 0 1000 642" width="1000" height="642" role="img" aria-label="Secuencia: bot de Telegram con n8n"><defs><marker id="s1-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs><rect class="sq-frame" x="6" y="302" width="988" height="254" rx="4"/><text class="sq-t sq-fl" x="14" y="316">alt · accion = redactar</text><line class="sq-sep" x1="6" y1="498" x2="994" y2="498"/><text class="sq-t sq-fl" x="14" y="512">si no · accion = responder</text><line class="sq-life" x1="91.66666666666667" y1="48" x2="91.66666666666667" y2="636"/><line class="sq-life" x1="255" y1="48" x2="255" y2="636"/><line class="sq-life" x1="418.33333333333337" y1="48" x2="418.33333333333337" y2="636"/><line class="sq-life" x1="581.6666666666667" y1="48" x2="581.6666666666667" y2="636"/><line class="sq-life" x1="745" y1="48" x2="745" y2="636"/><line class="sq-life" x1="908.3333333333334" y1="48" x2="908.3333333333334" y2="636"/><rect class="sq-box" x="18" y="8" width="147.33333333333334" height="40" rx="6"/><text class="sq-h" x="91.66666666666667" y="25" text-anchor="middle">Usuario</text><text class="sq-sub" x="91.66666666666667" y="39" text-anchor="middle">Telegram</text><rect class="sq-box" x="181.33333333333331" y="8" width="147.33333333333334" height="40" rx="6"/><text class="sq-h" x="255" y="25" text-anchor="middle">Telegram</text><text class="sq-sub" x="255" y="39" text-anchor="middle">Bot API</text><rect class="sq-box" x="344.6666666666667" y="8" width="147.33333333333334" height="40" rx="6"/><text class="sq-h" x="418.33333333333337" y="25" text-anchor="middle">n8n</text><text class="sq-sub" x="418.33333333333337" y="39" text-anchor="middle">flujo de GUIA-N8N</text><rect class="sq-box" x="508.00000000000006" y="8" width="147.33333333333334" height="40" rx="6"/><text class="sq-h" x="581.6666666666667" y="25" text-anchor="middle">OpenRouter</text><text class="sq-sub" x="581.6666666666667" y="39" text-anchor="middle">DeepSeek</text><rect class="sq-box" x="671.3333333333334" y="8" width="147.33333333333334" height="40" rx="6"/><text class="sq-h" x="745" y="25" text-anchor="middle">server/http</text><text class="sq-sub" x="745" y="39" text-anchor="middle">nuevo</text><rect class="sq-box" x="834.6666666666667" y="8" width="147.33333333333334" height="40" rx="6"/><text class="sq-h" x="908.3333333333334" y="25" text-anchor="middle">Módulos</text><text class="sq-sub" x="908.3333333333334" y="39" text-anchor="middle">procesar · respuesta</text><line class="sq-arrow" x1="91.66666666666667" y1="72" x2="255" y2="72" marker-end="url(#s1-a)"/><text class="sq-t" x="173.33333333333334" y="66" text-anchor="middle">texto de la oferta</text><line class="sq-arrow" x1="255" y1="106" x2="418.33333333333337" y2="106" marker-end="url(#s1-a)"/><text class="sq-t" x="336.6666666666667" y="100" text-anchor="middle">webhook</text><line class="sq-arrow" x1="418.33333333333337" y1="140" x2="581.6666666666667" y2="140" marker-end="url(#s1-a)"/><text class="sq-t" x="500.00000000000006" y="134" text-anchor="middle">extraer (LLM)</text><line class="sq-arrow sq-ret" x1="581.6666666666667" y1="174" x2="418.33333333333337" y2="174" marker-end="url(#s1-a)"/><text class="sq-t" x="500.00000000000006" y="168" text-anchor="middle">JSON de extracción</text><line class="sq-arrow" x1="418.33333333333337" y1="208" x2="745" y2="208" marker-end="url(#s1-a)"/><text class="sq-t" x="581.6666666666667" y="202" text-anchor="middle">POST /api/procesar</text><line class="sq-arrow" x1="745" y1="242" x2="908.3333333333334" y2="242" marker-end="url(#s1-a)"/><text class="sq-t" x="826.6666666666667" y="236" text-anchor="middle">procesar()</text><line class="sq-arrow sq-ret" x1="908.3333333333334" y1="276" x2="745" y2="276" marker-end="url(#s1-a)"/><text class="sq-t" x="826.6666666666667" y="270" text-anchor="middle">responder o redactar</text><line class="sq-arrow sq-ret" x1="745" y1="334" x2="418.33333333333337" y2="334" marker-end="url(#s1-a)"/><text class="sq-t" x="581.6666666666667" y="328" text-anchor="middle">ctx y plantilla</text><line class="sq-arrow" x1="418.33333333333337" y1="368" x2="581.6666666666667" y2="368" marker-end="url(#s1-a)"/><text class="sq-t" x="500.00000000000006" y="362" text-anchor="middle">redactar (LLM)</text><line class="sq-arrow sq-ret" x1="581.6666666666667" y1="402" x2="418.33333333333337" y2="402" marker-end="url(#s1-a)"/><text class="sq-t" x="500.00000000000006" y="396" text-anchor="middle">texto</text><line class="sq-arrow" x1="418.33333333333337" y1="436" x2="745" y2="436" marker-end="url(#s1-a)"/><text class="sq-t" x="581.6666666666667" y="430" text-anchor="middle">POST /api/elegir-respuesta</text><line class="sq-arrow sq-ret" x1="745" y1="470" x2="418.33333333333337" y2="470" marker-end="url(#s1-a)"/><text class="sq-t" x="581.6666666666667" y="464" text-anchor="middle">texto + origen</text><line class="sq-arrow sq-ret" x1="745" y1="526" x2="418.33333333333337" y2="526" marker-end="url(#s1-a)"/><text class="sq-t" x="581.6666666666667" y="520" text-anchor="middle">texto final</text><line class="sq-arrow" x1="418.33333333333337" y1="568" x2="255" y2="568" marker-end="url(#s1-a)"/><text class="sq-t" x="336.6666666666667" y="562" text-anchor="middle">sendMessage</text><line class="sq-arrow sq-ret" x1="255" y1="602" x2="91.66666666666667" y2="602" marker-end="url(#s1-a)"/><text class="sq-t" x="173.33333333333334" y="596" text-anchor="middle">respuesta con fuente</text></svg></div><figcaption>El flujo es el de la guía; solo los dos pasos de cálculo van al servidor. Si el modelo de redacción falla, <code>elegirRespuesta</code> envía la plantilla.</figcaption></figure>
+  <h3>2 · Página con /api/consulta</h3>
+  <figure class="diagram"><div class="scroll"><svg viewBox="0 0 1000 452" width="1000" height="452" role="img" aria-label="Secuencia: página con consulta"><defs><marker id="s2-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs><rect class="sq-frame" x="6" y="234" width="988" height="130" rx="4"/><text class="sq-t sq-fl" x="14" y="248">alt · accion = redactar</text><line class="sq-life" x1="132.5" y1="48" x2="132.5" y2="446"/><line class="sq-life" x1="377.5" y1="48" x2="377.5" y2="446"/><line class="sq-life" x1="622.5" y1="48" x2="622.5" y2="446"/><line class="sq-life" x1="867.5" y1="48" x2="867.5" y2="446"/><rect class="sq-box" x="57.5" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="132.5" y="25" text-anchor="middle">Navegador</text><text class="sq-sub" x="132.5" y="39" text-anchor="middle">web/</text><rect class="sq-box" x="302.5" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="377.5" y="25" text-anchor="middle">server/http</text><text class="sq-sub" x="377.5" y="39" text-anchor="middle">/api/consulta</text><rect class="sq-box" x="547.5" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="622.5" y="25" text-anchor="middle">Módulos</text><text class="sq-sub" x="622.5" y="39" text-anchor="middle">procesar · respuesta</text><rect class="sq-box" x="792.5" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="867.5" y="25" text-anchor="middle">OpenRouter</text><text class="sq-sub" x="867.5" y="39" text-anchor="middle">DeepSeek</text><line class="sq-arrow" x1="132.5" y1="72" x2="377.5" y2="72" marker-end="url(#s2-a)"/><text class="sq-t" x="255" y="66" text-anchor="middle">POST /api/consulta {texto}</text><line class="sq-arrow" x1="377.5" y1="106" x2="867.5" y2="106" marker-end="url(#s2-a)"/><text class="sq-t" x="622.5" y="100" text-anchor="middle">extraer (LLM)</text><line class="sq-arrow sq-ret" x1="867.5" y1="140" x2="377.5" y2="140" marker-end="url(#s2-a)"/><text class="sq-t" x="622.5" y="134" text-anchor="middle">JSON de extracción</text><line class="sq-arrow" x1="377.5" y1="174" x2="622.5" y2="174" marker-end="url(#s2-a)"/><text class="sq-t" x="500" y="168" text-anchor="middle">procesar()</text><line class="sq-arrow sq-ret" x1="622.5" y1="208" x2="377.5" y2="208" marker-end="url(#s2-a)"/><text class="sq-t" x="500" y="202" text-anchor="middle">responder o redactar</text><line class="sq-arrow" x1="377.5" y1="266" x2="867.5" y2="266" marker-end="url(#s2-a)"/><text class="sq-t" x="622.5" y="260" text-anchor="middle">redactar (LLM)</text><line class="sq-arrow sq-ret" x1="867.5" y1="300" x2="377.5" y2="300" marker-end="url(#s2-a)"/><text class="sq-t" x="622.5" y="294" text-anchor="middle">texto</text><line class="sq-arrow" x1="377.5" y1="334" x2="622.5" y2="334" marker-end="url(#s2-a)"/><text class="sq-t" x="500" y="328" text-anchor="middle">elegirRespuesta()</text><line class="sq-arrow sq-ret" x1="377.5" y1="376" x2="132.5" y2="376" marker-end="url(#s2-a)"/><text class="sq-t" x="255" y="370" text-anchor="middle">200 texto, color, origen</text><rect class="sq-note" x="62.5" y="398" width="875" height="24" rx="4"/><text class="sq-t sq-nt" x="500" y="414" text-anchor="middle">Sin clave o con falla del modelo, la respuesta sale con plantilla y lo dice (origen: plantilla).</text></svg></div><figcaption>La página recibe el texto final, el color del semáforo y de dónde salió la respuesta.</figcaption></figure>
+  <h3>3 · Verificar entidad y mapa</h3>
+  <figure class="diagram"><div class="scroll"><svg viewBox="0 0 900 388" width="900" height="388" role="img" aria-label="Secuencia: verificar entidad y mapa"><defs><marker id="s3-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs><line class="sq-life" x1="156.66666666666666" y1="48" x2="156.66666666666666" y2="382"/><line class="sq-life" x1="450" y1="48" x2="450" y2="382"/><line class="sq-life" x1="743.3333333333333" y1="48" x2="743.3333333333333" y2="382"/><rect class="sq-box" x="81.66666666666666" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="156.66666666666666" y="25" text-anchor="middle">Cliente</text><text class="sq-sub" x="156.66666666666666" y="39" text-anchor="middle">página o n8n</text><rect class="sq-box" x="375" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="450" y="25" text-anchor="middle">server/http</text><text class="sq-sub" x="450" y="39" text-anchor="middle">verificar y acceso</text><rect class="sq-box" x="668.3333333333333" y="8" width="150" height="40" rx="6"/><text class="sq-h" x="743.3333333333333" y="25" text-anchor="middle">datos/procesado</text><text class="sq-sub" x="743.3333333333333" y="39" text-anchor="middle">JSON en memoria</text><line class="sq-arrow" x1="156.66666666666666" y1="72" x2="450" y2="72" marker-end="url(#s3-a)"/><text class="sq-t" x="303.3333333333333" y="66" text-anchor="middle">GET /api/verificar?q=nombre</text><line class="sq-arrow" x1="450" y1="106" x2="743.3333333333333" y2="106" marker-end="url(#s3-a)"/><text class="sq-t" x="596.6666666666666" y="100" text-anchor="middle">buscarEntidad(tabla, q)</text><line class="sq-arrow sq-ret" x1="743.3333333333333" y1="140" x2="450" y2="140" marker-end="url(#s3-a)"/><text class="sq-t" x="596.6666666666666" y="134" text-anchor="middle">estado y fecha</text><line class="sq-arrow sq-ret" x1="450" y1="174" x2="156.66666666666666" y2="174" marker-end="url(#s3-a)"/><text class="sq-t" x="303.3333333333333" y="168" text-anchor="middle">estado, fecha y términos buscados</text><rect class="sq-note" x="86.66666666666666" y="196" width="433.33333333333337" height="24" rx="4"/><text class="sq-t sq-nt" x="303.3333333333333" y="212" text-anchor="middle">Que no esté en la tabla da sin_verificar, nunca "no registrada".</text><line class="sq-arrow" x1="156.66666666666666" y1="244" x2="450" y2="244" marker-end="url(#s3-a)"/><text class="sq-t" x="303.3333333333333" y="238" text-anchor="middle">GET /api/acceso/estados</text><line class="sq-arrow" x1="450" y1="278" x2="743.3333333333333" y2="278" marker-end="url(#s3-a)"/><text class="sq-t" x="596.6666666666666" y="272" text-anchor="middle">lee acceso_estados.json</text><line class="sq-arrow sq-ret" x1="450" y1="312" x2="156.66666666666666" y2="312" marker-end="url(#s3-a)"/><text class="sq-t" x="303.3333333333333" y="306" text-anchor="middle">valor, periodo y fuente</text><rect class="sq-note" x="86.66666666666666" y="334" width="726.6666666666666" height="24" rx="4"/><text class="sq-t sq-nt" x="449.99999999999994" y="350" text-anchor="middle">La página pinta el mapa (SVG) o barras. Sin dato oficial por estado, solo barras.</text></svg></div><figcaption>La verificación usa la tabla capturada a mano. El mapa muestra solo lo que dice la fuente oficial.</figcaption></figure>
+</section>
+
+<section id="datos">
+  <h2>Datos y carpetas</h2>
+  <p><b>No usamos base de datos.</b> Son pocas filas de solo lectura, capturadas a mano y cargadas en memoria al arrancar.</p>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Archivo</th><th>Contenido</th><th>Lo captura</th><th>Lo verifica</th></tr></thead><tbody><tr><td><code>datos/procesado/sipres_entidades.json</code></td><td>Filas con <code>nombre_comercial</code>, <code>razon_social</code>, <code>estado</code>, <code>terminos_buscados</code> y <code>fecha_consulta</code> (formato de <code>sipres.js</code>). "No registrada" exige fecha y al menos 2 términos buscados.</td><td>Equipo 1</td><td>JR</td></tr><tr><td><code>datos/procesado/acceso_estados.json</code></td><td>Indicador oficial por estado con periodo y URL de la fuente. Desconocido es <code>null</code>.</td><td>Equipo 2</td><td>JR</td></tr><tr><td>Respaldo de CETES</td><td>Ya está en <code>banxico/banxico.js</code> (6.22 al 29/10/2026).</td><td>Existe</td><td>JR</td></tr></tbody></table></div>
+  <pre><code>cuentasClaras/                     (ya existe)
+├─ extraccion/ · calculo/ · semaforo/ · sipres/ · banxico/ · respuesta/ · flujo/   módulos con pruebas
+├─ n8n/
+│  ├─ GUIA-N8N.md · nodos/   (ya existen; nodos/ se genera con scripts/empaquetar.js)
+│  ├─ workflow-respaldo.json         NUEVO · flujo actual con los dos nodos empaquetados        [Equipo 2]
+│  └─ workflow.json                  NUEVO · mismo flujo con dos nodos HTTP al servidor         [Equipo 2]
+├─ server/                           NUEVO · node:http, CommonJS, sin dependencias              [Equipo 1]
+│  ├─ index.js · config.js           arranque, carga de datos, claves desde el entorno
+│  ├─ http/                          handlers de /api/*
+│  ├─ ia/openrouter.js               extraer y redactar con los prompts de los .md
+│  └─ test/                          node --test
+├─ web/                              NUEVO · index.html · app.js · styles.css · mapa-estados.svg [Equipo 2]
+├─ datos/procesado/                  NUEVO en esta carpeta                                       [Equipos 1 y 2]
+│  ├─ sipres_entidades.json          capturada a mano; JR verifica                               [Equipo 1]
+│  └─ acceso_estados.json            indicador oficial por estado; JR verifica                   [Equipo 2]
+└─ scripts/empaquetar.js             ya existe; regenera n8n/nodos/</code></pre>
+</section>
+
+<section id="equipo-1">
+  <h2>Equipo 1 · Servidor y verificación</h2>
+  <p>Dos personas, dos pistas. Rutas: <code>server/</code> y <code>datos/procesado/sipres_entidades.json</code>. La tarea 1A va primero y en un PR pequeño, porque desbloquea a la página y al n8n nuevo.</p>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Tarea</th><th>Qué se hace</th><th>Hecho cuando</th></tr></thead><tbody><tr><td>1A · Persona 1</td><td><code>server/index.js</code> con <code>node:http</code> y CommonJS: <code>/api/salud</code>, <code>/api/procesar</code>, <code>/api/elegir-respuesta</code> y un <code>/api/consulta</code> que devuelve un ejemplo fijo. Carga la tabla SIPRES y la config al arrancar. <b>Es el primer PR: desbloquea al Equipo 2.</b></td><td>Con una salida de extracción de ejemplo, el endpoint devuelve lo mismo que <code>procesar()</code> directo. <code>node --test</code> verde.</td></tr><tr><td>1B · Persona 2</td><td><code>datos/procesado/sipres_entidades.json</code> (8 a 10 entidades, formato de <code>sipres.js</code>) y <code>GET /api/verificar</code>. JR verifica cada fila.</td><td><code>validarTabla()</code> devuelve lista vacía; el endpoint responde los tres estados.</td></tr><tr><td>1C · Persona 1</td><td><code>server/ia/openrouter.js</code> y el <code>/api/consulta</code> real: extraer, <code>procesar</code>, redactar, <code>elegirRespuesta</code>. Sin clave: plantilla visible.</td><td>Un texto de oferta de ejemplo devuelve color y texto; sin clave devuelve <code>origen: "plantilla"</code>.</td></tr><tr><td>1D · Persona 2</td><td><code>GET /api/acceso/estados</code> y <code>/api/acceso?estado=</code> sobre <code>acceso_estados.json</code>, con pruebas.</td><td>Responde los datos que captura el Equipo 2; <code>null</code> donde se desconoce.</td></tr><tr><td>1E · Ambas</td><td>Revisar los PR del Equipo 2 y mantener el servidor sin dependencias de npm.</td><td>Cada PR del Equipo 2 tiene una revisión de este equipo.</td></tr></tbody></table></div>
+  <p>No tocar: <code>web/</code> y <code>n8n/</code> (Equipo 2) ni los módulos existentes sin un PR propio que regenere <code>n8n/nodos/</code> (ver reglas de PR).</p>
+</section>
+
+<section id="equipo-2">
+  <h2>Equipo 2 · n8n, página y mapa</h2>
+  <p>Dos personas, dos pistas. Rutas: <code>n8n/</code>, <code>web/</code> y <code>datos/procesado/acceso_estados.json</code>. La tarea 2A no depende del servidor y se puede empezar ya.</p>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Tarea</th><th>Qué se hace</th><th>Hecho cuando</th></tr></thead><tbody><tr><td>2A · Persona 1</td><td>Levantar el flujo de <code>GUIA-N8N.md</code> con su propio bot de prueba, privacidad y túnel. Exportar <code>n8n/workflow-respaldo.json</code> sin credenciales. <b>No depende del servidor.</b></td><td>Un mensaje de texto recibe respuesta; las ejecuciones no guardan datos.</td></tr><tr><td>2B · Persona 1</td><td><code>n8n/workflow.json</code>: dos nodos HTTP en lugar de los Code, timeout y rama de error, salida <code>/verificar</code>.</td><td>Misma respuesta que el respaldo; con el servidor apagado, llega el mensaje fijo.</td></tr><tr><td>2C · Persona 2</td><td><code>web/</code>: caja para pegar una oferta, buscador de entidad, resultado con color, texto, fuente y fecha, y el origen (modelo o plantilla). Contra el <code>/api/consulta</code> de ejemplo primero.</td><td>Tres textos de ejemplo en celular; <code>null</code> visible como dato faltante.</td></tr><tr><td>2D · Persona 2</td><td><code>datos/procesado/acceso_estados.json</code> (JR verifica) y el mapa por estado o barras.</td><td>Muestra indicador, periodo y fuente; no sugiere acceso personal.</td></tr><tr><td>2E · Ambas</td><td>Prueba de punta a punta en celular: Telegram → n8n → servidor, página, servidor apagado y sin IA.</td><td>Los cuatro casos pasan; el enlace del bot abre la página.</td></tr></tbody></table></div>
+  <p>No tocar: <code>server/</code> (Equipo 1). Si necesitas otra forma de respuesta, abre un comentario en el PR del endpoint.</p>
+</section>
+
+<section id="prs">
+  <h2>Reglas de PR</h2>
+  <p>Propuesta para confirmar con Julio. Los nombres de las personas y la pareja de cada equipo los define JR.</p>
+  <ul><li>Una rama por tarea, con prefijo del equipo: <code>eq1/servidor-base</code>, <code>eq2/n8n-respaldo</code>. PR pequeño hacia <code>main</code>; nada de commits directos a <code>main</code>.</li><li>La revisión la hace una persona del otro equipo. Se revisa que lo desconocido sea <code>null</code>, que cada dato lleve fuente y fecha, y que no haya claves.</li><li><code>node --test</code> en verde antes de pedir revisión.</li><li>Si un PR cambia un módulo existente, se corre <code>node scripts/empaquetar.js</code> y se incluyen los <code>n8n/nodos/*</code> regenerados, para que el flujo de respaldo siga válido. <code>flujo/empaquetado.test.js</code> debería avisar si faltan (por verificar).</li><li>Ninguna clave en el repo ni en los JSON exportados de n8n. Las credenciales se crean en n8n y en <code>.env</code> (ya ignorado por <code>.gitignore</code>).</li><li>Cada PR dice qué cambia, qué prueba lo cubre y qué decide el servidor frente a n8n.</li></ul>
+  <p class="note-ill">Claude solo lee ese repo. Clonar, crear ramas o abrir PR requiere la autorización de JR.</p>
+</section>
+
+<section id="errores">
+  <h2>Errores y respaldos</h2>
+  <p>La demo no debe quedarse en silencio.</p>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Falla</th><th>Qué hace el sistema</th></tr></thead><tbody><tr><td>El servidor no responde o la clave del bot es incorrecta</td><td>El nodo HTTP tiene timeout de 10 s y una rama de error con un mensaje fijo. Además, <code>n8n/workflow-respaldo.json</code> sigue funcionando sin servidor.</td></tr><tr><td>El modelo de redacción falla o el verificador lo rechaza</td><td><code>elegirRespuesta</code> envía la plantilla con las mismas cifras; <code>origen: "plantilla"</code>.</td></tr><tr><td>El modelo de extracción devuelve algo ilegible</td><td><code>procesar</code> responde <code>error_formato</code> o pide aclaración; no calcula nada.</td></tr><tr><td>Banxico falla</td><td>Respaldo local con fecha y la respuesta dice que es dato de respaldo.</td></tr><tr><td>La entidad no está en la tabla</td><td><code>sin_verificar</code>: gris con enlace a SIPRES. Nunca rojo.</td></tr><tr><td>Falta el dato del mapa</td><td>Gráfico de barras con lo que sí hay; los desconocidos son <code>null</code>.</td></tr><tr><td>Dos n8n con el mismo bot</td><td>Telegram entrega a un solo webhook por token: el último n8n que activa el Trigger se queda con los mensajes. Un n8n para la demo y un bot de prueba de BotFather para cada persona.</td></tr><tr><td>n8n guarda el texto de las conversaciones</td><td>Desactivar el guardado de ejecuciones y activar Redact (sección 4 de la guía). Probarlo con un mensaje de prueba.</td></tr><tr><td>Una sola clave de OpenRouter para todos</td><td>Cada participante tiene su propia clave (crédito por persona, no compartido). Decidir cuál usa el servidor y cuál usa n8n.</td></tr><tr><td>Sin internet en el lugar</td><td>La página y el servidor corren en local con los datos capturados. Telegram, n8n y el modelo necesitan red.</td></tr></tbody></table></div>
+</section>
+
+<section id="abiertas">
+  <h2>Decisiones abiertas</h2>
+  <div class="scroll"><table class="wrapfirst"><thead><tr><th>Quién decide</th><th>Decisión</th><th>Recomendación</th></tr></thead><tbody><tr><td>JR</td><td>Reglas del Hub sobre código previo</td><td>El repo se creó hoy pero su primer commit trae módulos y pruebas ya hechos. Confirmar en las reglas si se permite usar preparación previa y, si piden declararla, hacerlo en el README.</td></tr><tr><td>Julio + Equipo 2</td><td>Dónde corre n8n y cómo llega al servidor</td><td>El Telegram Trigger necesita una URL HTTPS pública para n8n (lo dice la guía). Si n8n y el servidor corren en la misma máquina, el servidor basta con <code>localhost</code>; si n8n es remoto, el servidor necesita un túnel. Por eso el flujo de respaldo se conserva.</td></tr><tr><td>Julio</td><td>Quién hace merge y qué reglas de PR</td><td>Propuesta abajo. Falta confirmar quién integra y si hay protección de <code>main</code>.</td></tr><tr><td>JR + Equipo 2</td><td>Modelo con visión</td><td>La foto necesita un modelo con visión (por verificar). El texto funciona con <code>deepseek/deepseek-v4.1-flash</code>. P0 es texto; la foto entra si hay visión confirmada.</td></tr><tr><td>JR + Equipo 1</td><td>Clave de OpenRouter para el servidor y para n8n</td><td>El crédito es por participante, no compartido. Decidir qué clave usa el servidor y cuál n8n; nunca en el repo ni en el JSON exportado.</td></tr><tr><td>JR</td><td>Umbrales del semáforo</td><td>Son propuestas de Julio (tienda 15% y 50%, préstamo costo desde 50%). JR los valida; el amarillo por comparación con referencia de categoría queda fuera de P0.</td></tr><tr><td>JR</td><td>Selección guiada con productos reales</td><td>Queda como P1 si P0 está estable. Exige un adaptador nuevo (unos 30 min) que calcule el pago desde la tasa del producto, porque <code>calcular()</code> espera pagos y no tasas, más productos verificados.</td></tr><tr><td>Equipo</td><td>Tarjetas con pago mínimo</td><td>No hay fórmula verificada; no se inventa.</td></tr></tbody></table></div>
+</section>
+
+</main>
+</div>
+</body>
+</html>
