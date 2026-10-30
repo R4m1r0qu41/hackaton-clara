@@ -1,0 +1,74 @@
+                                                                                         CRÉDITO PERSONAL BANAMEX
+                                                                                         TABLA DE PAGOS
+Fecha de Elaboración:
+Nombre del Cliente:                                                             Número de Crédito:
+Plazo: [-]
+Tasa de Interés: [-]
+Monto a financiar: [-]
+Comisión por Apertura con IVA:
+Total a Financiar: $
+Total a pagar durante el crédito: *
+(1)CAT (Costo Anual Total): [-] sin IVA
+
+    Mes       Saldo de      Pago Capital      Pago Intereses      Pago Fijo Mensual          Pago IVA         Pago mensual        Prepagos
+               Capital                          Ordinarios        (Capital+ Intereses)      Intereses *          Total**
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+…
+
+[Para tabla amortización simulador: *Importe estimado del IVA de los intereses, por lo que pueden existir variaciones en el monto del pago.
+** El Pago Mensual Total incluye el importe estimado de IVA de intereses, por lo que pueden existir pequeñas variaciones en cada pago. La
+información obtenida es únicamente para efectos ilustrativos, por lo que no implica asunción de obligación ni compromiso por
+parte de Banco Nacional de México, S.A.. La información contenida en la presente tabla de amortización solo debe ser considerada
+en el supuesto de que el cliente se encuentra al corriente en sus pagos, no realiza pagos anticipados del crédito y el importe
+correspondiente al cobro del IVA no se modifica.
+-El monto otorgado puede variar dependiendo de la capacidad de pago del cliente.
+-La tasa de interés es de referencia, ésta se otorgará en base a evaluación crediticia.
+La información de producto y políticas de crédito contenidas en este simulador están sujetas a cambio sin previo aviso.
+La autorización del crédito es una facultad discrecional de Banco Nacional de México S.A., integrante del Grupo Financiero Banamex, por lo
+que se reserva el derecho de otorgarla o negarla.
+CAT (Costo Anual Total) sin IVA. Calculado para fines informativos y de comparación exclusivamente. La fecha de cálculo es la señalada en
+la presente simulación. Cálculo del de pago por mil no considera la comisión por apertura, ni su IVA ni el IVA de intereses.]
+[Para tabla amortización estado de cuenta * Importe estimado del IVA de los intereses, por lo que pueden existir variaciones en el monto del
+pago.-La información contenida en la presente tabla de amortización solo debe ser considerada en el supuesto de que el cliente se
+encuentra al corriente en sus pagos, no realiza pagos anticipados del crédito y el importe correspondiente al cobro del IVA no se
+modifica]
+
+                                    Registro de Contratos de Adhesión: 0300-140-000731/30-00405-0226
+
+                                           Banco Nacional de México, S.A., Integrante del Grupo Financiero Banamex                        1/1
+

@@ -1,0 +1,11 @@
+# Hallazgos preliminares para revisión de JR
+
+Estos hallazgos sirven para localizar evidencia y deben revisarse junto con el PDF, la versión, la oferta y sus anexos antes de usarse. No son productos o cifras verificadas.
+
+- **Carátulas con campos sin llenar.** La [carátula CREDICHIC FLEX](https://registros.condusef.gob.mx/reca/admin/contratos_anexos/587580a.pdf), p. 1, muestra marcadores en CAT, tasas y plazo; la [carátula GOCASH](https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583643a.pdf), p. 1, también deja sin llenar CAT y tasas. Esos campos no permiten establecer el costo individual.
+- **Comisiones candidatas.** La [carátula GOCASH](https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583643a.pdf), p. 1, presenta como candidato una comisión de apertura de 2% sobre el monto del crédito. Revisar fechas, condiciones, consistencia con RECO y aplicabilidad antes de comparar.
+- **Gracia para cancelación.** El [contrato CPSJI EXTRA](https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143929c.pdf), p. 8, y el [contrato GOCASH](https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143938c.pdf), p. 3, describen 10 días hábiles posteriores a la firma para cancelar bajo condiciones, incluida la de no haber utilizado el crédito. Revisar las cláusulas completas: no asumir que esto difiere pagos o intereses.
+- **Calidad de extracción.** La [carátula Banamex](https://registros.condusef.gob.mx/reca/admin/contratos_anexos/569220a.pdf), p. 1, tiene texto visible como imágenes que no apareció completo en `pdftotext`. Hay OCR provisional marcado en el manifiesto; contrastarlo con el PDF antes de usarlo.
+- **Privacidad y cobertura.** Una tabla de amortización de CREDI-CONSUMO se excluyó por contener códigos de barras asociados a una cuenta. Su exclusión y URL figuran en el manifiesto. Los demás documentos no han sido auditados exhaustivamente para descartar identificadores presentes en imágenes.
+
+- **Contratos sustituidos por privacidad.** Se retiraron tres contratos cuyo texto incluía números bancarios. Se sustituyeron sus registros completos; la detección es limitada y no garantiza que los documentos restantes estén libres de identificadores, especialmente en imágenes.

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "estado": "piloto_sin_validar",
+  "manifest_sha256": "a51280fd0886f16c63c5f2382d2c378be8921263e7d7181eae1d36900faac40f",
+  "registro_reca": "0300-140-000731/30-00405-0226",
+  "producto": "CREDITO PERSONAL BANAMEX",
+  "institucion": "Banco Nacional de Mexico, S. A., Integrante del Grupo Financiero Banamex.",
+  "reca": {
+    "tipo": "condiciones_intereses",
+    "resumen": "La tasa ordinaria fija anual individualizada no será mayor de 50%; la tasa moratoria es 1.2 veces la ordinaria individualizada. Base de días: 360; revisar condiciones de mora y vencimiento.",
+    "documento_url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140042c.pdf",
+    "pagina_pdf": 6,
+    "sha256": "ec1dc758541fa433fc5fd5533e4c5fe9090fc0c0af8ca1ecf6db92ae29714102",
+    "estatus_ficha": "Modificado",
+    "version_actual_segun_ficha": true,
+    "fecha_consulta_utc": "2026-10-30T18:44:42.230159+00:00",
+    "interes_ordinario": {
+      "tasa_anual_cliente_pct": null,
+      "maximo_contractual_anual_pct": 50,
+      "tipo": "fija individualizada",
+      "base_dias": 360,
+      "base_calculo": "saldo insoluto diario"
+    },
+    "interes_moratorio": {
+      "tasa_anual_cliente_pct": null,
+      "factor_sobre_tasa_ordinaria": 1.2,
+      "base_dias": 360,
+      "base_calculo": "monto vencido de capital; sobre saldo insoluto desde clasificación como crédito vencido o vencimiento anticipado",
+      "condicion": "incumplimiento y días en mora"
+    },
+    "cat": {
+      "valor_pct": null,
+      "estado": "sin_dato_del_producto_verificado"
+    }
+  },
+  "sie": {
+    "id_serie": "SF316116",
+    "titulo": "Tasa de interés promedio ponderada por saldo de créditos personales en operación Considera los créditos comparables en operación a la fecha de corte Créditos Personales 2/ 3/",
+    "valor_pct": 39.0809,
+    "fecha_serie": "01/01/2026",
+    "periodo_publicado": "enero-febrero 2026",
+    "periodicidad": "Bimestral",
+    "fecha_consulta_utc": "2026-10-30T20:25:15.582510+00:00",
+    "fuente_datos": "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF316116/datos/oportuno",
+    "fuente_metodologia": "https://www.banxico.org.mx/SieInternet/consultarDirectorioInternetAction.do?sector=18&accion=consultarCuadro&idCuadro=CF815&locale=es",
+    "tipo_indicador": "tasa_promedio_ponderada_cartera_comparable",
+    "cat_producto_pct": null
+  },
+  "relacion": {
+    "tipo": "referencia_ordinaria_sie_aceptada_para_piloto",
+    "descripcion": "Promedio de cartera comparable de créditos personales del sistema; no identifica el producto ni demuestra que esté incluido en esa cartera.",
+    "comparabilidad_producto": "no_verificada",
+    "tasa_del_producto_pct": null,
+    "cat_del_producto_pct": null,
+    "comparacion_cuantitativa": null,
+    "tasa_ordinaria_referencia_pct": 39.0809,
+    "naturaleza_tasa": "promedio_ponderado_de_mercado",
+    "serie_referencia": "SF316116",
+    "periodo_referencia": "enero-febrero 2026",
+    "uso_acordado_por_JR": "Referencia de interés ordinario para el piloto; conservar etiqueta de promedio y periodo."
+  },
+  "observaciones": "Datos sujetos a revisión, la ficha RECA dice Modificado; validar vigencia y vínculo con producto antes de decisiones."
+}

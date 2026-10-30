@@ -1,0 +1,33 @@
+                                                                                   Método de pago
+                                                                                   Periodicidad
+                                                                                   Número de pagos
+TABLA DE AMORTIZACIÓN
+
+ RECA: 16701-140-042379/                                                          Fecha de corte: [    ]
+ Nombre del cliente: [    ]                                                       Fecha de vencimiento: [ ]
+ Tasa de interés ordinaria anual fija: [        ]                                 Número de contrato: [     ]
+ Tasa de interés moratoria anual fija: [            ]                             Número de cliente: [   ]
+ Comisión por apertura: 2%                                                        Número referencia: [    ]
+
+
+
+            FECHA LÍMITE DE
+  #                                    SALDO                      INTERESES
+            PAGO/FECHA DE                               CAPITAL                   IVA         PAGO TOTAL
+PAGO                                 INSOLUTO                     ORDINARIOS
+                CORTE
+
+      1
+
+                                                                   Monto Total a Pagar.
+
+
+
+
+  .
+
+
+
+
+  Fecha de elaboración: [ ] de [   ] de [   ]                                                                   Página 1 de 1
+

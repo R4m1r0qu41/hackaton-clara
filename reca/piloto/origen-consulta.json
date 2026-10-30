@@ -1,0 +1,239 @@
+{
+  "fecha_consulta_utc": "2026-10-30T19:28:40.885Z",
+  "advertencia": "Compara bytes descargados sin verificar disponibilidad comercial ni validez de condiciones.",
+  "resultados": [
+    {
+      "registro": "17102-140-044679/01-02644-1026",
+      "documento": "144572c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/144572c.pdf",
+      "sha256_capturado": "ef31cae75323f2a6a5bb1f0b69421a6869c6676610517092d46eacc8a95bd096",
+      "sha256_origen": "ef31cae75323f2a6a5bb1f0b69421a6869c6676610517092d46eacc8a95bd096",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "17102-140-044679/01-02644-1026",
+      "documento": "587580a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/587580a.pdf",
+      "sha256_capturado": "3ba6282429eee35892c3928296e1542dfc164abc03730b2824943b0713e78fad",
+      "sha256_origen": "3ba6282429eee35892c3928296e1542dfc164abc03730b2824943b0713e78fad",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2455-140-028449/11-00383-0226",
+      "documento": "140008c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140008c.pdf",
+      "sha256_capturado": "2c69dfd888736fc65bee121c0f48aa6a5c4030149ba7d5cbfd729e6688e5e19d",
+      "sha256_origen": "2c69dfd888736fc65bee121c0f48aa6a5c4030149ba7d5cbfd729e6688e5e19d",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2455-140-028449/11-00383-0226",
+      "documento": "561256a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/561256a.pdf",
+      "sha256_capturado": "5e9bffb35b36a3b97e8c8405f934aecf36b4ea5f3bd6649a8d6104cdeaeb67b9",
+      "sha256_origen": "5e9bffb35b36a3b97e8c8405f934aecf36b4ea5f3bd6649a8d6104cdeaeb67b9",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2455-140-028449/11-00383-0226",
+      "documento": "561257a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/561257a.pdf",
+      "sha256_capturado": "d7702d61aa1171e98296431f3632a3b4083a2daccbdcdba39e3491c16808e4b8",
+      "sha256_origen": "d7702d61aa1171e98296431f3632a3b4083a2daccbdcdba39e3491c16808e4b8",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "5872-140-044530/03-02620-1026",
+      "documento": "144520c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/144520c.pdf",
+      "sha256_capturado": "e7a6a20525d2ba2e1dfa86e84c7464aebfc8aee74012261342a432a01213ce3a",
+      "sha256_origen": "e7a6a20525d2ba2e1dfa86e84c7464aebfc8aee74012261342a432a01213ce3a",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "5872-140-044530/03-02620-1026",
+      "documento": "584389a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/584389a.pdf",
+      "sha256_capturado": "90c0b078eca2cb7fd9bf01d73172a2c93dd79aa122d12b8a154370db6f581ac9",
+      "sha256_origen": "90c0b078eca2cb7fd9bf01d73172a2c93dd79aa122d12b8a154370db6f581ac9",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "5872-140-044530/03-02620-1026",
+      "documento": "584390a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/584390a.pdf",
+      "sha256_capturado": "8b6782da741680cf283751a2da2fb4a20c98ea61ec4b461eaaf3581839a33e90",
+      "sha256_origen": "8b6782da741680cf283751a2da2fb4a20c98ea61ec4b461eaaf3581839a33e90",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "0300-140-000731/30-00405-0226",
+      "documento": "140042c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140042c.pdf",
+      "sha256_capturado": "ec1dc758541fa433fc5fd5533e4c5fe9090fc0c0af8ca1ecf6db92ae29714102",
+      "sha256_origen": "ec1dc758541fa433fc5fd5533e4c5fe9090fc0c0af8ca1ecf6db92ae29714102",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "0300-140-000731/30-00405-0226",
+      "documento": "569220a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/569220a.pdf",
+      "sha256_capturado": "7bad7d9804a293bf349c987e0b54cf888192bcac8d03d668bd485d3b312c9070",
+      "sha256_origen": "7bad7d9804a293bf349c987e0b54cf888192bcac8d03d668bd485d3b312c9070",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "0300-140-000731/30-00405-0226",
+      "documento": "569222a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/569222a.pdf",
+      "sha256_capturado": "019958026cac7fc15cf7bbea41c6c2870035e23d41e34b575aa2d76693ace201",
+      "sha256_origen": "019958026cac7fc15cf7bbea41c6c2870035e23d41e34b575aa2d76693ace201",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "17252-140-043632/01-00714-0326",
+      "documento": "140757c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140757c.pdf",
+      "sha256_capturado": "3f80afcdbff96eb33cc725bd8958ae19cd1756b8dd8af373556c7c012e274c79",
+      "sha256_origen": "3f80afcdbff96eb33cc725bd8958ae19cd1756b8dd8af373556c7c012e274c79",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "17252-140-043632/01-00714-0326",
+      "documento": "565263a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/565263a.pdf",
+      "sha256_capturado": "b9f08da9c1bb8f6d840fc757d9ac39c9d70ad5963bb84a9812f3e7feeb645d3d",
+      "sha256_origen": "b9f08da9c1bb8f6d840fc757d9ac39c9d70ad5963bb84a9812f3e7feeb645d3d",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "17252-140-043632/01-00714-0326",
+      "documento": "565265a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/565265a.pdf",
+      "sha256_capturado": "d998319b7f39ae39b2c6ecb4dc620cacdbecf0373714cfbc35b572293b3916e3",
+      "sha256_origen": "d998319b7f39ae39b2c6ecb4dc620cacdbecf0373714cfbc35b572293b3916e3",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2576-140-026939/01-01210-0317",
+      "documento": "073460c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/073460c.pdf",
+      "sha256_capturado": "8af60647a429ba82e72d739eeb7f5068aa975a501aabd025ae5fea4c4e55dfb2",
+      "sha256_origen": "8af60647a429ba82e72d739eeb7f5068aa975a501aabd025ae5fea4c4e55dfb2",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2576-140-026939/01-01210-0317",
+      "documento": "239147a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/239147a.pdf",
+      "sha256_capturado": "5bf1fbd8d90e67a43c627dd58f92070f0bedc07b6c315403b8655774903b5acb",
+      "sha256_origen": "5bf1fbd8d90e67a43c627dd58f92070f0bedc07b6c315403b8655774903b5acb",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2576-140-026939/01-01210-0317",
+      "documento": "239149a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/239149a.pdf",
+      "sha256_capturado": "e44092f52cba54200d0be27f8254183e01a1168ba931b3a147a0663f1fa2ebba",
+      "sha256_origen": "e44092f52cba54200d0be27f8254183e01a1168ba931b3a147a0663f1fa2ebba",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2576-140-026939/01-01210-0317",
+      "documento": "239150a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/239150a.pdf",
+      "sha256_capturado": "9741f269e12e851f5a9d6f0177aa52269f40b02e9ac469d9e7b0196b6e56aab2",
+      "sha256_origen": "9741f269e12e851f5a9d6f0177aa52269f40b02e9ac469d9e7b0196b6e56aab2",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4742-140-037254/02-01768-0725",
+      "documento": "135831c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/135831c.pdf",
+      "sha256_capturado": "c15892eb7cdc4891924967ea61f5dd784a376b3a3b023f881db4fd638a088cc9",
+      "sha256_origen": "c15892eb7cdc4891924967ea61f5dd784a376b3a3b023f881db4fd638a088cc9",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4742-140-037254/02-01768-0725",
+      "documento": "536160a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/536160a.pdf",
+      "sha256_capturado": "ea4b366edca577cc70dbf14a0d364bccfa588934b5df7872392b30b3edf0b3dc",
+      "sha256_origen": "ea4b366edca577cc70dbf14a0d364bccfa588934b5df7872392b30b3edf0b3dc",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4742-140-037254/02-01768-0725",
+      "documento": "536161a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/536161a.pdf",
+      "sha256_capturado": "627dcbad6f695860c3d4fc50a14d105d3499af722eb04b877ff2e7aeae158ff6",
+      "sha256_origen": "627dcbad6f695860c3d4fc50a14d105d3499af722eb04b877ff2e7aeae158ff6",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "13157-140-044492/01-02328-0926",
+      "documento": "143929c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143929c.pdf",
+      "sha256_capturado": "850a192c31d2613be34a599c6f93c05387b576917eadad5a4d0894c3e31c9114",
+      "sha256_origen": "850a192c31d2613be34a599c6f93c05387b576917eadad5a4d0894c3e31c9114",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "13157-140-044492/01-02328-0926",
+      "documento": "583606a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583606a.pdf",
+      "sha256_capturado": "c44a86357c6bd27485823850a651a06ab8479eda44ef23ea69abc5aba9ca9512",
+      "sha256_origen": "c44a86357c6bd27485823850a651a06ab8479eda44ef23ea69abc5aba9ca9512",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "13157-140-044492/01-02328-0926",
+      "documento": "583607a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583607a.pdf",
+      "sha256_capturado": "152d48777f55b69b945b5db955d71eb141c1778770c7cf5c76a4052ccdd04eca",
+      "sha256_origen": "152d48777f55b69b945b5db955d71eb141c1778770c7cf5c76a4052ccdd04eca",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4926-140-015569/09-01095-0423",
+      "documento": "120356c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/120356c.pdf",
+      "sha256_capturado": "a8de173873021e6e909efd9095acb9c7aefd1fb3b17e0284cb7b94efa178bc78",
+      "sha256_origen": "a8de173873021e6e909efd9095acb9c7aefd1fb3b17e0284cb7b94efa178bc78",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4926-140-015569/09-01095-0423",
+      "documento": "452044a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/452044a.pdf",
+      "sha256_capturado": "a7d7b0f3c512e0ce67bb57bed616822da98216d431dbb59cd945f0957af65112",
+      "sha256_origen": "a7d7b0f3c512e0ce67bb57bed616822da98216d431dbb59cd945f0957af65112",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "16701-140-042379/05-02331-0926",
+      "documento": "143938c.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143938c.pdf",
+      "sha256_capturado": "25f7d557babbf4c79ca8a746fa7ba5cdf07e201c31a8bede25644ea7af2d32d0",
+      "sha256_origen": "25f7d557babbf4c79ca8a746fa7ba5cdf07e201c31a8bede25644ea7af2d32d0",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "16701-140-042379/05-02331-0926",
+      "documento": "583643a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583643a.pdf",
+      "sha256_capturado": "2f55820255304482e797a3a1da52c8aa6f02efa9ea2d0fc23285c6f6e55a333b",
+      "sha256_origen": "2f55820255304482e797a3a1da52c8aa6f02efa9ea2d0fc23285c6f6e55a333b",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "16701-140-042379/05-02331-0926",
+      "documento": "574534a.pdf",
+      "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/574534a.pdf",
+      "sha256_capturado": "26b26a580f1a0e119eb8331389359d8eda7721bf5adf25c39f03c8dc447e1593",
+      "sha256_origen": "26b26a580f1a0e119eb8331389359d8eda7721bf5adf25c39f03c8dc447e1593",
+      "estado": "sin_cambio_detectado"
+    }
+  ],
+  "manifest_sha256": "a51280fd0886f16c63c5f2382d2c378be8921263e7d7181eae1d36900faac40f"
+}

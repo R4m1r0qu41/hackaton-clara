@@ -1,0 +1,60 @@
+[Número de Crédito]
+DH Banamex [Nombre del Cliente]
+CARÁTULA DE CRÉDITO
+
+Cuenta: CRÉDITO PERSONAL BANAMEX (modalidad CPB con Redisposición)
+Cliente: <<XX2X92000000000000000000000>
+
+Nombre comercial del Producto: CRÉDITO PERSONAL BANAMEX (modalidad CPB con Redisposición)
+
+Tipo de Crédito: Crédito Personal
+
+CAT TASA DE INTERÉS ANUAL E í e
+(Costo Anual Total) ORDINARIA Y MORATORIA. MONTO DEL CRÉDITO MÍNIMO A PAGAR (*)
+Ordinaria
+<<XX.X>>% <<XX.XX>>%
+Sin IVA.
+Para fines informativos Moratoria $<<xN>> $<<xxX>>
+
+<<XX.XX>>%
+
+y de comparación. >
+Tasa Fija
+
+Fecha Límite de Pago: Día <<XX>> de cada mes.
+Fecha de Corte: Día <<XX>> de cada mes.
+
+COMISIONES RELEVANTES
+
+Para otras comisiones consulte la cláusula SEXTA del contrato Crédito Personal Banamex modalidad
+con redisposición.
+
+ADVERTENCIAS -* Incumplir tus obligaciones te puede generar comisiones e intereses moratorios.
++ Contratar créditos que excedan tu capacidad de pago puede afectar tu historial crediticio.
+
+Seguro: Aseguradora: Cláusula:
+LIBERACIÓN DE ADEUDO POR Seguros Banamex, S.A. de C.V., integrante DÉCIMA CUARTA
+FALLECIMIENTO (obligatorio). del Grupo Financiero Banamex.
+
+ESTADO DE CUENTA
+
+Enviar a: domicilio _X Envío por correo electrónico Consulta: vía internet
+
+ACLARACIONES Y RECLAMACIONES
+
+Unidad Especializada de Atención a Usuarios:
+
+Domicilio:Av. Insurgentes Sur No. 926, Colonia Del Valle, C.P. 03100, Ciudad de México.
+
+Teléfono: 55-1226-4583, lada sin costo 800-021-2345,
+
+Página de Internet:www.banamex.com Correo electrónico: une Obanamex.com
+
+Registro de Contratos de Adhesión Número: 0300-140-000731/30-00405-0226
+Comisión Nacional para la Protección y Defensa de los Usuarios de Servicios Financieros (CONDUSEF):
+Teléfono: 800 999 8080 y 55 5340 0999. Página de Internet. www.condusef.gob.mx
+
+Banco Nacional de México, S.A., integrante del Grupo Financiero Banamex.
+
+*El dato contenido en el rubro Mínimo a Pagar, está calculado bajo el supuesto de que el Cliente dispone de la totalidad del monto de la Línea de Crédito
+señalada.

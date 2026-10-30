@@ -1,0 +1,31 @@
+                                                                                                               Tabla de Amortización
+                                                                                                          Crédito Sustitución Efectivo
+
+Nombre de la acreditada:
+Código de cliente:
+Monto del crédito:                                                            Comisión por apertura e IVA1:
+Plazo en meses:                                                               Comisión por disposición e IVA1:
+Número de pagos:                                                              Esquema de aseguramiento:
+Tasa de interés ordinaria fija anual:                                         Número de Crédito:
+Periodicidad de pago:
+
+
+
+  Número de
+                      Pago Fijo     Capital           Interés          IVA de los Intereses         Seguros          Pago Total      Saldo de Capital
+    Pagos
+
+
+
+
+Registro de Contratos de Adhesión de la CONDUSEF: 2576-140-026939
+CAT XX% sin IVA. Para fines informativos y de comparación calculado al DDMMAAAA
+    1. Estas comisiones generan IVA a la tasa vigente a la fecha de cobro.
+    2. Cobro inicial sobre el monto de la primera disposición de crédito. En cobros subsecuentes aplica sobre el saldo insoluto del crédito al
+          primer día hábil de cada mes.
+Nota: Santander se reserva el derecho de cobrar una cantidad menor, situación que se hará del conocimiento del Cliente mediante el Estado de Cuenta.
+FECHA DE ELABORACIÓN: DD-MM-AAAA                                             XXXXXXX
+
+
+JUR 837 (V1-102016)
+

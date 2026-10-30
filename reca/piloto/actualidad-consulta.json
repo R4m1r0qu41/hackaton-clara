@@ -1,0 +1,97 @@
+{
+  "fecha_consulta_utc": "2026-10-30T19:27:23.287Z",
+  "advertencia": "Comprobación de metadatos de ficha, no de contenidos PDF, disponibilidad comercial ni validación de JR.",
+  "resultados": [
+    {
+      "registro": "17102-140-044679/01-02644-1026",
+      "version_capturada": "17102-140-044679/01-02644-1026",
+      "codigo_capturado": "1",
+      "version_actual": "17102-140-044679/01-02644-1026",
+      "version_seleccionada": "17102-140-044679/01-02644-1026",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2455-140-028449/11-00383-0226",
+      "version_capturada": "2455-140-028449/11-00383-0226",
+      "codigo_capturado": "1",
+      "version_actual": "2455-140-028449/11-00383-0226",
+      "version_seleccionada": "2455-140-028449/11-00383-0226",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "5872-140-044530/03-02620-1026",
+      "version_capturada": "5872-140-044530/03-02620-1026",
+      "codigo_capturado": "1",
+      "version_actual": "5872-140-044530/03-02620-1026",
+      "version_seleccionada": "5872-140-044530/03-02620-1026",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "0300-140-000731/30-00405-0226",
+      "version_capturada": "0300-140-000731/30-00405-0226",
+      "codigo_capturado": "3",
+      "version_actual": "0300-140-000731/30-00405-0226",
+      "version_seleccionada": "0300-140-000731/30-00405-0226",
+      "codigo_actual": "3",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "17252-140-043632/01-00714-0326",
+      "version_capturada": "17252-140-043632/01-00714-0326",
+      "codigo_capturado": "1",
+      "version_actual": "17252-140-043632/01-00714-0326",
+      "version_seleccionada": "17252-140-043632/01-00714-0326",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "2576-140-026939/01-01210-0317",
+      "version_capturada": "2576-140-026939/01-01210-0317",
+      "codigo_capturado": "1",
+      "version_actual": "2576-140-026939/01-01210-0317",
+      "version_seleccionada": "2576-140-026939/01-01210-0317",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4742-140-037254/02-01768-0725",
+      "version_capturada": "4742-140-037254/02-01768-0725",
+      "codigo_capturado": "1",
+      "version_actual": "4742-140-037254/02-01768-0725",
+      "version_seleccionada": "4742-140-037254/02-01768-0725",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "13157-140-044492/01-02328-0926",
+      "version_capturada": "13157-140-044492/01-02328-0926",
+      "codigo_capturado": "1",
+      "version_actual": "13157-140-044492/01-02328-0926",
+      "version_seleccionada": "13157-140-044492/01-02328-0926",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "4926-140-015569/09-01095-0423",
+      "version_capturada": "4926-140-015569/09-01095-0423",
+      "codigo_capturado": "1",
+      "version_actual": "4926-140-015569/09-01095-0423",
+      "version_seleccionada": "4926-140-015569/09-01095-0423",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    },
+    {
+      "registro": "16701-140-042379/05-02331-0926",
+      "version_capturada": "16701-140-042379/05-02331-0926",
+      "codigo_capturado": "1",
+      "version_actual": "16701-140-042379/05-02331-0926",
+      "version_seleccionada": "16701-140-042379/05-02331-0926",
+      "codigo_actual": "1",
+      "estado": "sin_cambio_detectado"
+    }
+  ],
+  "manifest_sha256": "a51280fd0886f16c63c5f2382d2c378be8921263e7d7181eae1d36900faac40f"
+}

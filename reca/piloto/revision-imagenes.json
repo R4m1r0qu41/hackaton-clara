@@ -1,0 +1,22 @@
+[
+  {
+    "registro": "0300-140-000731/30-00405-0226",
+    "documento": "569220a.pdf",
+    "pagina": 1,
+    "imagenes": 68,
+    "caracteres_extraidos": 629,
+    "tipo": "ocr_creado_revision_humana_pendiente"
+  },
+  {
+    "registro": "2455-140-028449/11-00383-0226",
+    "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/561255a.pdf",
+    "tipo": "excluido",
+    "motivo": "posibles datos bancarios en texto"
+  },
+  {
+    "registro": "4926-140-015569/09-01095-0423",
+    "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583110a.pdf",
+    "tipo": "excluido",
+    "motivo": "La página 2 contiene códigos de barras asociados a una cuenta; se excluye por precaución y queda pendiente revisión."
+  }
+]
