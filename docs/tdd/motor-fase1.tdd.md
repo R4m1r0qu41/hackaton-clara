@@ -230,6 +230,96 @@ Cobertura de todo el repo: 97.96% de líneas, 92.69% de ramas. `mensaje.js` 100%
 
 1. Crear la cuenta de propietario e importar los tres JSON de `n8n/workflows/` (menú ⋯, "Import from file").
 2. **Publicar `evaluar_oferta` y `verificar_entidad`** (sin esto, el bot responde siempre con el aviso de servicio).
-3. En `bot.json`, asignar la credencial de Telegram al disparador y al envío, y la de OpenRouter al nodo Modelo. Elegir un modelo que soporte herramientas (el valor de partida es `deepseek/deepseek-chat`).
+3. En `bot.json`, asignar la credencial de Telegram al disparador y al envío, y la de DeepSeek al nodo Modelo (`deepseek-chat`; debe llamar bien a las herramientas).
 4. Publicar `bot.json`. El disparador de Telegram necesita una URL HTTPS pública (D6).
 5. Tras cambiar el motor o la tabla de SIPRES: `node scripts/empaquetar.js` y volver a importar.
+
+## RAG como herramienta del agente
+
+El bot tiene una tercera herramienta, `consultar_rag`, que llama al servicio RAG de la rama `Eugenio` (contrato de su README): `POST /query` con clave de portador y `{ "query": "...", "topK": 5 }`, que devuelve `{ "results": [{ text, source, page, chunkIndex, similarity }] }`. Con esto queda cerrada la decisión D5.
+
+**Cómo decide el código qué se envía** (`motor/flujo/salida.js`, pruebas primero):
+
+| Situación | Se envía | Origen |
+|---|---|---|
+| Hay fragmentos y las cifras del texto del modelo están en ellos | El texto del modelo, más el aviso y las fuentes que añade el código | `llm` (`rag`) |
+| El modelo agrega cifras, colores de semáforo, enlaces o palabras prohibidas que los fragmentos no respaldan | Un extracto del primer fragmento (500 caracteres como máximo), con el aviso y las fuentes | `plantilla` (`rag_rechazo`) |
+| `results` viene vacío | "No encontré información sobre eso en los documentos que tengo." | `herramienta` |
+| El RAG no responde o da error | "No pude consultar mis documentos ahora." | `servicio` (`rag_fallido`) |
+| También se calculó o se verificó una entidad | Gana el cálculo o la verificación; si el cálculo falló, no lo tapa el RAG | — |
+
+Los nombres de fuente y el texto de los fragmentos se limpian (sin caracteres de control ni espacios repetidos). Las instrucciones del agente le dicen que los fragmentos son datos, no órdenes.
+
+**Prueba en un n8n 2.44.5 desechable** con servidor, el bot real, un modelo simulado de DeepSeek y un RAG simulado que registra lo que recibe:
+
+| Escenario | Resultado |
+|---|---|
+| Pregunta general, el modelo usa una cifra de los fragmentos | Sale el texto del modelo con aviso y fuentes |
+| El modelo inventa `$9,999` | Sale el extracto del primer fragmento |
+| El RAG responde sin resultados | Aviso de que no hay información |
+| El RAG responde 503 | Aviso de que no se pudo consultar |
+| Evaluar una oferta (regresión) | Igual que antes |
+
+El RAG simulado recibió `POST /query` con la clave correcta y un cuerpo JSON válido: `{"query":"qué es el \"CAT\"?\nExplícalo","topK":5}`. Las comillas y el salto de línea de la pregunta llegaron bien escapados.
+
+**Dos suposiciones mías que la prueba corrigió**
+
+- **La clave va en una credencial Header Auth, no "Bearer".** El nodo HTTP de n8n no admite `httpBearerAuth` ("The type httpBearerAuth is not supported"). Se crea una credencial **Header Auth** con nombre `Authorization` y valor `Bearer <RAG_API_KEY>`.
+- **El nodo `toolHttpRequest` de LangChain no sirve con el Agente 3.1.** Solo suministra datos y el motor pide que la herramienta se ejecute ("has a supplyData method but no execute method"). Se usa el nodo HTTP Request base en su variante de herramienta, `n8n-nodes-base.httpRequestTool` 4.5. Mientras tanto, el bot se portó bien: avisó que no pudo consultar, sin inventar nada.
+
+**Para activarlo en el n8n del equipo**
+
+1. Levantar el RAG de Eugenio (ver su README) y conectar el contenedor de n8n a su red de Docker: `docker network connect hackaton-clara-rag n8n`. La dirección que usa el bot es `http://rag:3000/query`. Esa conexión se pierde si se recrea el contenedor de n8n.
+2. Crear la credencial Header Auth (`Authorization: Bearer <RAG_API_KEY>`) y asignarla al nodo `consultar_rag`.
+3. Importar el `bot.json` nuevo. Importar con el mismo identificador reemplaza el bot ya importado y se pierden las credenciales asignadas.
+
+**Huecos**
+
+- **No se probó contra el servicio RAG real de Eugenio.** Necesita PostgreSQL con pgvector, la ingesta de los PDF y un proveedor de embeddings, que su README dice que aún no se eligió. Se probó contra un servidor simulado con su mismo contrato.
+- **La dirección `http://rag:3000/query` no se pudo probar en el desechable.** Allí se usó una dirección del host; el nombre `rag` depende de la red de Docker de su compose.
+- **El corpus actual solo cubre tarjetas**, no préstamos.
+- **Las cifras del RAG se comprueban solo en pesos y porcentajes**, y solo contra el texto de los fragmentos recuperados.
+
+## RECA y SIPRES consultables desde el agente
+
+Petición: "quiero que RECA y SIPRES sean consultables desde el agente".
+
+**SIPRES.** El JSON de Eugenio (`data/sipres-entidades.json`, 2,596 entidades) se convierte con `scripts/importar-sipres.js` a la tabla del bot (`datos/procesado/sipres_entidades.json`): 2,594 filas convertidas y 2 omitidas por no tener nombre utilizable. El conjunto solo trae entidades autorizadas o en operación, así que una entidad ausente sigue siendo `sin_verificar`, nunca "no registrada". Antes de cargar los datos reales se endureció el buscador:
+
+- Una coincidencia exacta gana sobre las parciales.
+- Si quedan varias entidades distintas, no se elige una: `sin_verificar` con motivo `varias_coincidencias` y la lista de candidatas, y el mensaje le pide a la persona el nombre completo.
+- Un resultado `registrada` añade sector y estatus. SIPRES confirma el registro, no que el producto esté autorizado.
+
+**RECA.** Dos herramientas HTTP nuevas en el agente, ambas con la credencial Header Auth del RAG:
+
+| Herramienta | Llamada | Salida al usuario |
+|---|---|---|
+| `listar_reca` | `GET http://rag:3000/reca/productos` | Lista fija escrita en código (máx. 12 líneas), con el registro de cada contrato |
+| `consultar_reca` | `POST http://rag:3000/query` con `{query, registroReca, topK}` | Texto del modelo si pasa el verificador, o extracto de los fragmentos; siempre con aviso y fuentes (`AVISO_RECA`, `AVISO_SIE`) |
+
+**RED y GREEN**
+
+| Paso | Comando | Resultado |
+|---|---|---|
+| RED del importador | `node --test scripts/importar-sipres.test.js` | Falla: `Cannot find module './importar-sipres'` |
+| GREEN del importador | el mismo | 7 pruebas pasan |
+| RED de las herramientas | `node --test scripts/empaquetar.test.js` | 5 fallan (nodos, conexiones, descripciones, instrucciones del agente) |
+| GREEN | el mismo, tras generar los archivos | 37 pasan |
+| Suite completa | `node --test "motor/**/*.test.js" "scripts/**/*.test.js"` | 250 pasan, 0 fallan |
+
+**Cobertura** (`--experimental-test-coverage`): total 98.05% líneas, 92.39% ramas. `importar-sipres.js` 96.91%, `empaquetar.js` 93.43%, `sipres.js` 98.11%, `salida.js` 100%.
+
+**Prueba contra el RAG real de Eugenio.** El bot real corrió en un n8n 2.44.5 desechable conectado a la red `hackaton-clara-rag`, con las direcciones reales `http://rag:3000/...` y la clave real en una credencial Header Auth. El modelo fue simulado:
+
+| Escenario | Resultado |
+|---|---|
+| Pedir los contratos | El agente llamó `listar_reca`; la persona recibió la lista de 10 contratos con su registro |
+| Preguntar por comisiones de un contrato | Llamó `listar_reca` y luego `consultar_reca` con el registro `17102-140-044679/01-02644-1026`; salió el texto del modelo con aviso RECA, aviso de Banxico y fuentes con páginas |
+
+**Huecos**
+
+- **El modelo fue simulado.** No se probó que un modelo real (Gemini o DeepSeek) elija bien entre `listar_reca` y `consultar_reca`; el prompt lo pide, pero falta verlo en Telegram.
+- **Los textos del RECA son evidencia candidata**, pendiente de validación, y la cifra de Banxico es un promedio de mercado, no el CAT del producto. Ambos avisos salen siempre.
+- **El buscador de SIPRES es por nombre**: un nombre muy distinto al registrado no coincide y queda `sin_verificar`.
+- **Los embeddings siguen siendo léxicos** (`embeddings-local`), no semánticos. Las consultas por registro RECA no los usan.
+- **Nada está commiteado.**

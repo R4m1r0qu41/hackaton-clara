@@ -40,6 +40,10 @@ __fabricas["respuesta/respuesta"] = function (module, exports, require) {
  */
 
 const AVISO_CAT = 'CAT estimado con fines informativos, sin IVA; puede diferir del CAT oficial.';
+const AVISO_RAG = 'Información general tomada de documentos; no es una evaluación de tu oferta.';
+const AVISO_RECA = 'Texto de contratos públicos del RECA (Condusef); es evidencia candidata, pendiente de validación.';
+const AVISO_SIE = 'La referencia de Banxico es un promedio de mercado; no es el CAT ni la tasa de este producto.';
+const MAX_CONTRATOS_LISTA = 10;
 const MAX_LINEAS = 10;
 const MAX_CARACTERES = 3500;
 const MAX_HECHOS = 3;
@@ -79,6 +83,11 @@ function cifrasEnTexto(texto) {
   const pesos = Array.from(texto.matchAll(patronPesos()), (m) => valorDe(m[1]));
   const porcentajes = Array.from(texto.matchAll(patronPorcentaje()), (m) => valorDe(m[1]));
   return { pesos, porcentajes };
+}
+
+/** Todos los números que aparecen en un texto, con o sin "$" ni "%". */
+function numerosEnTexto(texto) {
+  return Array.from(texto.matchAll(/\d[\d,]*(?:\.\d+)?/g), (m) => valorDe(m[0]));
 }
 
 /** Todas las cifras que el cálculo, las razones y la evidencia citada permiten decir. */
@@ -210,14 +219,27 @@ function verificarRespuesta(texto, ctx) {
 /**
  * Verificación ligera de un texto que no viene de un cálculo (una pregunta, un saludo): sin cifras, sin
  * colores de semáforo, sin enlaces ni palabras prohibidas. Lo que solo un cálculo puede decir se rechaza.
+ *
+ * Con `fuentes` (textos recuperados de documentos), una cifra se acepta solo si aparece en alguna de ellas.
  */
-function verificarConversacion(texto) {
+function verificarConversacion(texto, fuentes) {
   if (typeof texto !== 'string' || !texto.trim()) return { ok: false, fallas: ['texto_vacio'] };
   const fallas = new Set();
   if (texto.length > MAX_CARACTERES) fallas.add('demasiado_largo');
   if (texto.split('\n').filter((l) => l.trim()).length > MAX_LINEAS) fallas.add('demasiadas_lineas');
   if (PROHIBIDAS.some((re) => re.test(normalizar(texto)))) fallas.add('palabra_prohibida');
-  if (patronPesos().test(texto) || patronPorcentaje().test(texto)) fallas.add('cifra_sin_calculo');
+
+  const dichas = cifrasEnTexto(texto);
+  const textosFuente = Array.isArray(fuentes) ? fuentes.filter((f) => typeof f === 'string') : [];
+  if (textosFuente.length === 0) {
+    if (dichas.pesos.length || dichas.porcentajes.length) fallas.add('cifra_sin_calculo');
+  } else {
+    // Una cifra del modelo vale si ese número aparece en los fragmentos, con o sin símbolo: las tablas de los
+    // documentos traen los montos y los porcentajes sin "$" ni "%".
+    const enFuentes = numerosEnTexto(textosFuente.join('\n'));
+    const fuera = [...dichas.pesos, ...dichas.porcentajes].some((v) => !cifraPermitida(v, enFuentes));
+    if (fuera) fallas.add('cifra_fuera_de_la_fuente');
+  }
   if (Object.values(EMOJI).some((e) => texto.includes(e))) fallas.add('color_sin_calculo');
   if (patronEnlace().test(texto)) fallas.add('enlace_no_permitido');
   return { ok: fallas.size === 0, fallas: Array.from(fallas) };
@@ -248,6 +270,17 @@ const mensajes = {
   error: () => 'No pude procesar tu mensaje. Intenta de nuevo con el texto completo de la oferta.',
   cobranza: () => 'Parece un mensaje de cobranza. Por ahora solo reviso ofertas de crédito y etiquetas de tienda.',
   verificarSinNombre: () => 'Escribe /verificar y el nombre de la entidad, por ejemplo: /verificar Nombre de la entidad.',
+  ragSinResultados: () => 'No encontré información sobre eso en los documentos que tengo.',
+  ragNoDisponible: () => 'No pude consultar mis documentos ahora. Intenta de nuevo en un rato.',
+  recaLista: (productos) => {
+    const limpio = (v) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) : '');
+    const filas = (Array.isArray(productos) ? productos : [])
+      .filter((p) => p && typeof p === 'object' && limpio(p.nombre))
+      .slice(0, MAX_CONTRATOS_LISTA)
+      .map((p) => `• ${limpio(p.nombre)} — ${limpio(p.institucion) || 'institución no indicada'} (registro ${limpio(p.registroReca)})`);
+    if (filas.length === 0) return 'No tengo contratos del RECA para consultar.';
+    return ['Contratos del RECA (Condusef) que puedo consultar:', ...filas, 'Dime de cuál quieres saber, por ejemplo por el nombre del producto.'].join('\n');
+  },
   aclaracion: (preguntas) => {
     const lista = (Array.isArray(preguntas) ? preguntas : []).filter((p) => typeof p === 'string' && p.trim()).slice(0, MAX_PREGUNTAS);
     if (lista.length === 0) return 'Necesito un poco más de información para calcular. ¿Me compartes el texto completo de la oferta?';
@@ -258,7 +291,17 @@ const mensajes = {
     const fecha = textoUtil(r.fecha_consulta);
     const entidad = textoUtil(r.entidad);
     if (r.estado === 'registrada') {
-      return `✅ ${entidad ? `${entidad}: aparece` : 'Aparece'} registrada en el SIPRES de Condusef${fecha ? ` (consulta del ${fecha})` : ''}.`;
+      const datos = [textoUtil(r.sector) && `Sector: ${textoUtil(r.sector)}.`, textoUtil(r.estatus) && `Estatus en SIPRES: ${textoUtil(r.estatus)}.`].filter(Boolean).join(' ');
+      return [
+        `✅ ${entidad ? `${entidad}: aparece` : 'Aparece'} registrada en el SIPRES de Condusef${fecha ? ` (consulta del ${fecha})` : ''}.`,
+        ...(datos ? [datos] : []),
+        'SIPRES confirma el registro de la entidad, no que un producto de crédito esté autorizado.',
+      ].join('\n');
+    }
+    if (r.estado === 'sin_verificar' && r.motivo === 'varias_coincidencias') {
+      const nombres = (Array.isArray(r.coincidencias) ? r.coincidencias : []).map(textoUtil).filter(Boolean).slice(0, 5);
+      const total = Number.isInteger(r.total_coincidencias) ? ` (${r.total_coincidencias})` : '';
+      return `❔ Hay varias entidades con un nombre parecido${total}${nombres.length ? `: ${nombres.join('; ')}` : ''}. Escribe el nombre completo o la razón social.`;
     }
     if (r.estado === 'no_registrada_confirmada') {
       const buscados = Array.isArray(r.terminos_buscados) ? r.terminos_buscados.filter((t) => typeof t === 'string' && t.trim()) : [];
@@ -280,6 +323,9 @@ module.exports = {
   elegirRespuesta,
   mensajes,
   AVISO_CAT,
+  AVISO_RAG,
+  AVISO_RECA,
+  AVISO_SIE,
   MAX_LINEAS,
   MAX_CARACTERES,
   PROHIBIDAS,
@@ -303,6 +349,9 @@ __fabricas["flujo/salida"] = function (module, exports, require) {
  *   - hubo cálculo para redactar          -> el texto del modelo si pasa el verificador; si no, la plantilla
  *   - el agente verificó una entidad      -> el mensaje de la herramienta
  *   - llamó a una herramienta de cálculo y no hubo resultado válido -> aviso de que no se pudo analizar
+ *   - consultó los documentos (consultar_rag) -> el texto del modelo si sus cifras están en los fragmentos, con el
+ *     aviso y las fuentes que añade el código; si no, un extracto del primer fragmento; sin resultados o con falla,
+ *     un aviso
  *   - no hubo herramientas                -> el texto del modelo solo si no dice nada que requiera un cálculo
  * Devuelve { texto, origen, motivo, fallas }.
  */
@@ -312,13 +361,71 @@ const R = require('../respuesta/respuesta');
 const MAX_PROFUNDIDAD = 4;
 // Herramientas cuyo resultado decide el mensaje. Una consulta a otra herramienta (por ejemplo, un RAG) no cuenta aquí.
 const HERRAMIENTAS_DE_CALCULO = ['evaluar_oferta', 'verificar_entidad'];
+// Consultas a documentos (RAG semántico y contratos RECA) y la lista de contratos.
+const HERRAMIENTAS_DE_CONSULTA = ['consultar_rag', 'consultar_reca'];
+const HERRAMIENTA_DE_LISTA = 'listar_reca';
+const MAX_EXTRACTO = 500;
+const MAX_FUENTE = 80;
+const MAX_FUENTES = 3;
 
 const esObjeto = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const esFragmento = (f) => esObjeto(f) && typeof f.text === 'string';
 
 function clasificar(obj) {
   if ((obj.accion === 'redactar' && esObjeto(obj.ctx)) || (obj.accion === 'responder' && typeof obj.texto === 'string')) return 'evaluar';
   if (typeof obj.estado === 'string' && typeof obj.texto === 'string' && Array.isArray(obj.terminos_buscados)) return 'verificar';
+  // Respuesta del RAG: { results: [{ text, source, page, ... }] }. Una lista vacía es "sin resultados", no un error.
+  if (Array.isArray(obj.results) && obj.results.every(esFragmento)) return 'rag';
+  // Lista de contratos RECA: GET /reca/productos -> { productos: [{ registroReca, nombre, institucion, ... }] }
+  if (Array.isArray(obj.productos) && obj.productos.every((p) => esObjeto(p) && typeof p.registroReca === 'string' && typeof p.nombre === 'string')) return 'reca_lista';
   return null;
+}
+
+/** Quita caracteres de control y espacios repetidos: el texto de un documento no se pega tal cual en un mensaje. */
+const limpiar = (valor, maximo) =>
+  typeof valor === 'string' ? valor.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maximo).trim() : '';
+
+function extracto(texto) {
+  const limpio = limpiar(texto, Number.MAX_SAFE_INTEGER);
+  return limpio.length > MAX_EXTRACTO ? `${limpio.slice(0, MAX_EXTRACTO).trimEnd()}…` : limpio;
+}
+
+/** Nombre legible de la fuente: el contrato RECA por su registro y la serie de Banxico por su clave. */
+function etiquetaDeFuente(f) {
+  if (f.sourceType === 'RECA' && limpiar(f.registroReca, MAX_FUENTE)) return `RECA ${limpiar(f.registroReca, MAX_FUENTE)}`;
+  if (f.sourceType === 'SIE') return `Banxico SIE ${limpiar(f.source, MAX_FUENTE)}`.trim();
+  return limpiar(f.source, MAX_FUENTE);
+}
+
+function lineaDeFuentes(fragmentos) {
+  const grupos = new Map();
+  for (const f of fragmentos) {
+    const etiqueta = etiquetaDeFuente(f);
+    if (!etiqueta) continue;
+    if (!grupos.has(etiqueta)) {
+      if (grupos.size === MAX_FUENTES) continue;
+      grupos.set(etiqueta, []);
+    }
+    const paginas = grupos.get(etiqueta);
+    if (Number.isInteger(f.page) && f.page > 0 && !paginas.includes(f.page)) paginas.push(f.page);
+  }
+  if (grupos.size === 0) return null;
+  const partes = Array.from(grupos, ([etiqueta, paginas]) => (paginas.length ? `${etiqueta} (p. ${paginas.join(', ')})` : etiqueta));
+  return `Fuentes: ${partes.join('; ')}`;
+}
+
+function salidaRag(texto, rag) {
+  const fragmentos = rag.results;
+  if (fragmentos.length === 0 || rag.estado === 'registro_no_encontrado' || rag.estadoRecuperacionContrato === 'sin_coincidencias') {
+    return { texto: R.mensajes.ragSinResultados(), origen: 'herramienta', motivo: 'rag_sin_resultados', fallas: [] };
+  }
+  const hay = (tipo) => fragmentos.some((f) => f.sourceType === tipo);
+  const pie = [R.AVISO_RAG, hay('RECA') && R.AVISO_RECA, hay('SIE') && R.AVISO_SIE, lineaDeFuentes(fragmentos)].filter(Boolean);
+  // El modelo también puede citar las cláusulas candidatas que el servicio extrajo de cada contrato.
+  const clausulas = Array.isArray(rag.condiciones) ? rag.condiciones.map((c) => c && c.resumen_candidato).filter((s) => typeof s === 'string') : [];
+  const verificacion = R.verificarConversacion(texto, [...fragmentos.map((f) => f.text), ...clausulas]);
+  if (verificacion.ok) return { texto: [texto.trim(), ...pie].join('\n'), origen: 'llm', motivo: 'rag', fallas: [] };
+  return { texto: [extracto(fragmentos[0].text), ...pie].join('\n'), origen: 'plantilla', motivo: 'rag_rechazo', fallas: verificacion.fallas };
 }
 
 /** Busca resultados de herramientas en lo que n8n entregó: objetos, listas, { json }, o texto JSON. */
@@ -373,8 +480,17 @@ function elegirSalida({ texto, pasos, error } = {}) {
 
   // Llamó a una herramienta de cálculo y no hubo un resultado válido (sub-workflow inactivo, error, tiempo agotado):
   // lo que diga el modelo no está respaldado por ningún cálculo.
-  const llamoCalculo = Array.isArray(pasos) && pasos.some((p) => esObjeto(p) && esObjeto(p.action) && HERRAMIENTAS_DE_CALCULO.includes(p.action.tool));
-  if (llamoCalculo) return { texto: R.mensajes.servicioNoDisponible(), origen: 'servicio', motivo: 'herramienta_fallida', fallas: [] };
+  const llamo = (nombres) => Array.isArray(pasos) && pasos.some((p) => esObjeto(p) && esObjeto(p.action) && nombres.includes(p.action.tool));
+  if (llamo(HERRAMIENTAS_DE_CALCULO)) return { texto: R.mensajes.servicioNoDisponible(), origen: 'servicio', motivo: 'herramienta_fallida', fallas: [] };
+
+  // Consulta a documentos: con resultados, el texto del modelo solo sale si sus cifras están en los fragmentos.
+  const ragNoDisponible = { texto: R.mensajes.ragNoDisponible(), origen: 'servicio', motivo: 'rag_fallido', fallas: [] };
+  const rag = ultimo('rag');
+  if (rag) return salidaRag(texto, rag);
+  if (llamo(HERRAMIENTAS_DE_CONSULTA)) return ragNoDisponible;
+  const lista = ultimo('reca_lista');
+  if (lista) return { texto: R.mensajes.recaLista(lista.productos), origen: 'herramienta', motivo: 'reca_lista', fallas: [] };
+  if (llamo([HERRAMIENTA_DE_LISTA])) return ragNoDisponible;
 
   const conversacion = R.verificarConversacion(texto);
   if (conversacion.ok) return { texto: texto.trim(), origen: 'llm', motivo: 'conversacion', fallas: [] };

@@ -17,6 +17,10 @@
  */
 
 const AVISO_CAT = 'CAT estimado con fines informativos, sin IVA; puede diferir del CAT oficial.';
+const AVISO_RAG = 'Información general tomada de documentos; no es una evaluación de tu oferta.';
+const AVISO_RECA = 'Texto de contratos públicos del RECA (Condusef); es evidencia candidata, pendiente de validación.';
+const AVISO_SIE = 'La referencia de Banxico es un promedio de mercado; no es el CAT ni la tasa de este producto.';
+const MAX_CONTRATOS_LISTA = 10;
 const MAX_LINEAS = 10;
 const MAX_CARACTERES = 3500;
 const MAX_HECHOS = 3;
@@ -56,6 +60,11 @@ function cifrasEnTexto(texto) {
   const pesos = Array.from(texto.matchAll(patronPesos()), (m) => valorDe(m[1]));
   const porcentajes = Array.from(texto.matchAll(patronPorcentaje()), (m) => valorDe(m[1]));
   return { pesos, porcentajes };
+}
+
+/** Todos los números que aparecen en un texto, con o sin "$" ni "%". */
+function numerosEnTexto(texto) {
+  return Array.from(texto.matchAll(/\d[\d,]*(?:\.\d+)?/g), (m) => valorDe(m[0]));
 }
 
 /** Todas las cifras que el cálculo, las razones y la evidencia citada permiten decir. */
@@ -187,14 +196,27 @@ function verificarRespuesta(texto, ctx) {
 /**
  * Verificación ligera de un texto que no viene de un cálculo (una pregunta, un saludo): sin cifras, sin
  * colores de semáforo, sin enlaces ni palabras prohibidas. Lo que solo un cálculo puede decir se rechaza.
+ *
+ * Con `fuentes` (textos recuperados de documentos), una cifra se acepta solo si aparece en alguna de ellas.
  */
-function verificarConversacion(texto) {
+function verificarConversacion(texto, fuentes) {
   if (typeof texto !== 'string' || !texto.trim()) return { ok: false, fallas: ['texto_vacio'] };
   const fallas = new Set();
   if (texto.length > MAX_CARACTERES) fallas.add('demasiado_largo');
   if (texto.split('\n').filter((l) => l.trim()).length > MAX_LINEAS) fallas.add('demasiadas_lineas');
   if (PROHIBIDAS.some((re) => re.test(normalizar(texto)))) fallas.add('palabra_prohibida');
-  if (patronPesos().test(texto) || patronPorcentaje().test(texto)) fallas.add('cifra_sin_calculo');
+
+  const dichas = cifrasEnTexto(texto);
+  const textosFuente = Array.isArray(fuentes) ? fuentes.filter((f) => typeof f === 'string') : [];
+  if (textosFuente.length === 0) {
+    if (dichas.pesos.length || dichas.porcentajes.length) fallas.add('cifra_sin_calculo');
+  } else {
+    // Una cifra del modelo vale si ese número aparece en los fragmentos, con o sin símbolo: las tablas de los
+    // documentos traen los montos y los porcentajes sin "$" ni "%".
+    const enFuentes = numerosEnTexto(textosFuente.join('\n'));
+    const fuera = [...dichas.pesos, ...dichas.porcentajes].some((v) => !cifraPermitida(v, enFuentes));
+    if (fuera) fallas.add('cifra_fuera_de_la_fuente');
+  }
   if (Object.values(EMOJI).some((e) => texto.includes(e))) fallas.add('color_sin_calculo');
   if (patronEnlace().test(texto)) fallas.add('enlace_no_permitido');
   return { ok: fallas.size === 0, fallas: Array.from(fallas) };
@@ -225,6 +247,17 @@ const mensajes = {
   error: () => 'No pude procesar tu mensaje. Intenta de nuevo con el texto completo de la oferta.',
   cobranza: () => 'Parece un mensaje de cobranza. Por ahora solo reviso ofertas de crédito y etiquetas de tienda.',
   verificarSinNombre: () => 'Escribe /verificar y el nombre de la entidad, por ejemplo: /verificar Nombre de la entidad.',
+  ragSinResultados: () => 'No encontré información sobre eso en los documentos que tengo.',
+  ragNoDisponible: () => 'No pude consultar mis documentos ahora. Intenta de nuevo en un rato.',
+  recaLista: (productos) => {
+    const limpio = (v) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) : '');
+    const filas = (Array.isArray(productos) ? productos : [])
+      .filter((p) => p && typeof p === 'object' && limpio(p.nombre))
+      .slice(0, MAX_CONTRATOS_LISTA)
+      .map((p) => `• ${limpio(p.nombre)} — ${limpio(p.institucion) || 'institución no indicada'} (registro ${limpio(p.registroReca)})`);
+    if (filas.length === 0) return 'No tengo contratos del RECA para consultar.';
+    return ['Contratos del RECA (Condusef) que puedo consultar:', ...filas, 'Dime de cuál quieres saber, por ejemplo por el nombre del producto.'].join('\n');
+  },
   aclaracion: (preguntas) => {
     const lista = (Array.isArray(preguntas) ? preguntas : []).filter((p) => typeof p === 'string' && p.trim()).slice(0, MAX_PREGUNTAS);
     if (lista.length === 0) return 'Necesito un poco más de información para calcular. ¿Me compartes el texto completo de la oferta?';
@@ -235,7 +268,17 @@ const mensajes = {
     const fecha = textoUtil(r.fecha_consulta);
     const entidad = textoUtil(r.entidad);
     if (r.estado === 'registrada') {
-      return `✅ ${entidad ? `${entidad}: aparece` : 'Aparece'} registrada en el SIPRES de Condusef${fecha ? ` (consulta del ${fecha})` : ''}.`;
+      const datos = [textoUtil(r.sector) && `Sector: ${textoUtil(r.sector)}.`, textoUtil(r.estatus) && `Estatus en SIPRES: ${textoUtil(r.estatus)}.`].filter(Boolean).join(' ');
+      return [
+        `✅ ${entidad ? `${entidad}: aparece` : 'Aparece'} registrada en el SIPRES de Condusef${fecha ? ` (consulta del ${fecha})` : ''}.`,
+        ...(datos ? [datos] : []),
+        'SIPRES confirma el registro de la entidad, no que un producto de crédito esté autorizado.',
+      ].join('\n');
+    }
+    if (r.estado === 'sin_verificar' && r.motivo === 'varias_coincidencias') {
+      const nombres = (Array.isArray(r.coincidencias) ? r.coincidencias : []).map(textoUtil).filter(Boolean).slice(0, 5);
+      const total = Number.isInteger(r.total_coincidencias) ? ` (${r.total_coincidencias})` : '';
+      return `❔ Hay varias entidades con un nombre parecido${total}${nombres.length ? `: ${nombres.join('; ')}` : ''}. Escribe el nombre completo o la razón social.`;
     }
     if (r.estado === 'no_registrada_confirmada') {
       const buscados = Array.isArray(r.terminos_buscados) ? r.terminos_buscados.filter((t) => typeof t === 'string' && t.trim()) : [];
@@ -257,6 +300,9 @@ module.exports = {
   elegirRespuesta,
   mensajes,
   AVISO_CAT,
+  AVISO_RAG,
+  AVISO_RECA,
+  AVISO_SIE,
   MAX_LINEAS,
   MAX_CARACTERES,
   PROHIBIDAS,

@@ -227,6 +227,11 @@ test('el workflow principal tiene los nodos, tipos y versiones esperados', () =>
     Memoria: ['@n8n/n8n-nodes-langchain.memoryBufferWindow', 1.3],
     evaluar_oferta: ['@n8n/n8n-nodes-langchain.toolWorkflow', 2.2],
     verificar_entidad: ['@n8n/n8n-nodes-langchain.toolWorkflow', 2.2],
+    // El nodo @n8n/n8n-nodes-langchain.toolHttpRequest no sirve con el Agente 3.1 de n8n 2.44.5 (solo suministra datos,
+    // no se ejecuta): se usa el nodo HTTP Request base en su variante de herramienta.
+    consultar_rag: ['n8n-nodes-base.httpRequestTool', 4.5],
+    listar_reca: ['n8n-nodes-base.httpRequestTool', 4.5],
+    consultar_reca: ['n8n-nodes-base.httpRequestTool', 4.5],
     'Elegir respuesta': ['n8n-nodes-base.code', 2],
     'Enviar respuesta': ['n8n-nodes-base.telegram', 1.2],
   };
@@ -261,12 +266,63 @@ test('el ruteo manda cada tipo de mensaje a su rama', () => {
   }
 });
 
-test('el agente recibe modelo, memoria y las dos herramientas por las conexiones de IA', () => {
+test('el agente recibe modelo, memoria y las cinco herramientas por las conexiones de IA', () => {
   const wf = bot();
   assert.deepEqual(destinos(wf.connections, 'Modelo', 'ai_languageModel'), ['Agente']);
   assert.deepEqual(destinos(wf.connections, 'Memoria', 'ai_memory'), ['Agente']);
-  assert.deepEqual(destinos(wf.connections, 'evaluar_oferta', 'ai_tool'), ['Agente']);
-  assert.deepEqual(destinos(wf.connections, 'verificar_entidad', 'ai_tool'), ['Agente']);
+  for (const herramienta of ['evaluar_oferta', 'verificar_entidad', 'consultar_rag', 'listar_reca', 'consultar_reca']) {
+    assert.deepEqual(destinos(wf.connections, herramienta, 'ai_tool'), ['Agente'], herramienta);
+  }
+});
+
+test('consultar_rag llama al RAG con la pregunta del modelo y la clave se asigna en n8n', () => {
+  const rag = nodo(bot(), 'consultar_rag');
+  const p = rag.parameters;
+  assert.equal(p.method, 'POST');
+  assert.equal(p.url, 'http://rag:3000/query');
+  assert.equal(p.authentication, 'genericCredentialType');
+  // n8n no tiene un tipo de credencial "Bearer" genérico en el nodo HTTP: el token va en una credencial Header Auth
+  // (nombre Authorization, valor "Bearer <clave>"). Comprobado contra n8n 2.44.5: httpBearerAuth da "not supported".
+  assert.equal(p.genericAuthType, 'httpHeaderAuth');
+  assert.equal(p.sendBody, true);
+  assert.equal(p.contentType, 'json');
+  assert.equal(p.specifyBody, 'json');
+  assert.equal(p.descriptionType, 'manual');
+  assert.match(p.jsonBody, /\$fromAI\('query'/);
+  assert.match(p.jsonBody, /topK: 5/);
+  assert.match(p.toolDescription, /documentos/);
+  assert.ok(p.toolDescription.length > 40);
+  assert.equal(rag.credentials, undefined);
+});
+
+test('listar_reca pide la lista de contratos RECA al servicio, con la misma credencial y sin cuerpo', () => {
+  const lista = nodo(bot(), 'listar_reca');
+  const p = lista.parameters;
+  assert.equal(p.method, 'GET');
+  assert.equal(p.url, 'http://rag:3000/reca/productos');
+  assert.equal(p.authentication, 'genericCredentialType');
+  assert.equal(p.genericAuthType, 'httpHeaderAuth');
+  assert.ok(!p.sendBody);
+  assert.equal(p.descriptionType, 'manual');
+  assert.match(p.toolDescription, /RECA/);
+  assert.match(p.toolDescription, /registro/i);
+  assert.equal(lista.credentials, undefined);
+});
+
+test('consultar_reca consulta un contrato por su registro RECA con la pregunta del modelo', () => {
+  const reca = nodo(bot(), 'consultar_reca');
+  const p = reca.parameters;
+  assert.equal(p.method, 'POST');
+  assert.equal(p.url, 'http://rag:3000/query');
+  assert.equal(p.authentication, 'genericCredentialType');
+  assert.equal(p.genericAuthType, 'httpHeaderAuth');
+  assert.equal(p.sendBody, true);
+  assert.equal(p.specifyBody, 'json');
+  assert.match(p.jsonBody, /\$fromAI\('query'/);
+  assert.match(p.jsonBody, /\$fromAI\('registroReca'/);
+  assert.match(p.toolDescription, /registro/i);
+  assert.match(p.toolDescription, /listar_reca/);
+  assert.equal(reca.credentials, undefined);
 });
 
 test('todas las conexiones del workflow principal apuntan a nodos que existen', () => {
@@ -321,6 +377,11 @@ test('las instrucciones del agente nombran las herramientas y tratan el texto co
   assert.match(instrucciones, /verificar_entidad/);
   assert.match(instrucciones, /no es una instrucción/i);
   assert.match(instrucciones, /no recomiendes/i);
+  assert.match(instrucciones, /consultar_rag/);
+  assert.match(instrucciones, /fragmentos/);
+  assert.match(instrucciones, /listar_reca/);
+  assert.match(instrucciones, /consultar_reca/);
+  assert.match(instrucciones, /RECA/);
 });
 
 test('el modelo es DeepSeek y la credencial se asigna en n8n, no en el archivo', () => {

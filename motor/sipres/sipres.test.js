@@ -124,3 +124,60 @@ test('validarTabla lista cada problema con el número de fila', () => {
 test('validarTabla rechaza algo que no es una lista', () => {
   assert.deepEqual(validarTabla(null), ['La tabla no es una lista.']);
 });
+
+// Con miles de entidades, un nombre genérico puede coincidir con muchas: no se elige una al azar.
+
+const fila = (nombre, razon, extra = {}) => ({ nombre_comercial: nombre, razon_social: razon, estado: 'registrada', terminos_buscados: [], fecha_consulta: FECHA, ...extra });
+const GRANDE = [
+  fila('Banco Alfa Norte', 'Banco Alfa Norte, S.A., Institución de Banca Múltiple', { sector: 'Instituciones de banca múltiple', estatus: 'En operación' }),
+  fila('Banco Beta Sur', 'Banco Beta Sur, S.A., Institución de Banca Múltiple'),
+  fila('Banco Gamma', 'Banco Gamma, S.A.'),
+  fila('Plata', 'Plata Servicios, S.A. de C.V., SOFOM E.N.R.'),
+  fila('Banco Plata Internacional', 'Banco Plata Internacional, S.A.'),
+  fila('Caja Sol', 'Caja Sol, S.C. de A.P.'),
+  fila('Caja Sol', 'Caja Sol del Norte, S.C. de A.P.'),
+  fila('Lumen', 'Lumen Crédito, S.A. de C.V.'),
+  fila('Lumen', 'Lumen Crédito, S.A. de C.V.'),
+];
+
+test('un nombre que coincide con varias entidades distintas es ambiguo, no registrada', () => {
+  const r = buscarEntidad(GRANDE, { nombre_comercial: 'Banco' });
+  assert.equal(r.estado, 'sin_verificar');
+  assert.equal(r.motivo, 'varias_coincidencias');
+  assert.deepEqual(r.advertencias, ['coincidencias_ambiguas']);
+  assert.equal(r.entidad, null);
+  assert.ok(r.coincidencias.length >= 2 && r.coincidencias.length <= 5);
+  assert.ok(r.coincidencias.includes('Banco Alfa Norte'));
+  assert.equal(r.total_coincidencias, 4);
+});
+
+test('una coincidencia exacta gana sobre las parciales', () => {
+  const r = buscarEntidad(GRANDE, { nombre_comercial: 'Plata' });
+  assert.equal(r.estado, 'registrada');
+  assert.equal(r.entidad, 'Plata');
+});
+
+test('varias coincidencias exactas de entidades distintas también son ambiguas', () => {
+  const r = buscarEntidad(GRANDE, { nombre_comercial: 'Caja Sol' });
+  assert.equal(r.estado, 'sin_verificar');
+  assert.equal(r.motivo, 'varias_coincidencias');
+});
+
+test('filas repetidas de la misma entidad cuentan como una', () => {
+  const r = buscarEntidad(GRANDE, { nombre_comercial: 'Lumen' });
+  assert.equal(r.estado, 'registrada');
+  assert.equal(r.entidad, 'Lumen');
+});
+
+test('una sola coincidencia parcial se acepta', () => {
+  assert.equal(buscarEntidad(GRANDE, { nombre_comercial: 'Gamma' }).entidad, 'Banco Gamma');
+});
+
+test('devuelve el sector y el estatus cuando la tabla los trae, y null si no', () => {
+  const con = buscarEntidad(GRANDE, { nombre_comercial: 'Banco Alfa Norte' });
+  assert.equal(con.sector, 'Instituciones de banca múltiple');
+  assert.equal(con.estatus, 'En operación');
+  const sin = buscarEntidad(GRANDE, { nombre_comercial: 'Banco Gamma' });
+  assert.equal(sin.sector, null);
+  assert.equal(sin.estatus, null);
+});

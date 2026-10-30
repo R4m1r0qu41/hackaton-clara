@@ -188,6 +188,22 @@ const DESCRIPCION_EVALUAR =
 const DESCRIPCION_VERIFICAR =
   'Busca una entidad por nombre en la tabla de SIPRES de Condusef. Recibe en "q" el nombre de la entidad. ' +
   'Devuelve su estado, la fecha de consulta y el mensaje para la persona.';
+const DESCRIPCION_RAG =
+  'Busca en los documentos cargados (comparativos de tarjetas) y devuelve fragmentos con su archivo y página. ' +
+  'Úsala para preguntas generales, no para evaluar una oferta. Recibe la pregunta de la persona.';
+// Servicio RAG de la rama Eugenio: POST /query con clave de portador y { query, topK }. `rag` es su nombre dentro de la
+// red de Docker que crea su compose (hackaton-clara-rag); el contenedor de n8n debe estar conectado a esa red.
+// La clave se guarda en n8n como credencial Header Auth: nombre `Authorization`, valor `Bearer <RAG_API_KEY>`.
+const URL_RAG = 'http://rag:3000/query';
+const DESCRIPCION_LISTAR_RECA =
+  'Lista los contratos de adhesión del RECA (Registro de Contratos de Adhesión de Condusef) que hay disponibles, ' +
+  'con su número de registro, nombre del producto e institución. Úsala para saber qué contratos existen y obtener ' +
+  'el número de registro que necesita consultar_reca. No recibe parámetros.';
+const DESCRIPCION_CONSULTAR_RECA =
+  'Busca en un contrato RECA concreto y devuelve fragmentos con su registro, cláusula y fuente. Recibe en ' +
+  'registroReca el número de registro (sale de listar_reca) y en query la pregunta de la persona sobre ese contrato ' +
+  '(comisiones, cláusulas, penalizaciones). Sin el registro, llama primero a listar_reca.';
+const URL_RECA_LISTA = 'http://rag:3000/reca/productos';
 const AYUDA_CAMPO = { extraccion: 'texto JSON con los datos extraídos de la oferta', q: 'nombre de la entidad a buscar' };
 
 const nodoCodigo = (nombre, codigo, posicion) => ({
@@ -279,6 +295,62 @@ function construirBot({ codigos, instrucciones }) {
     },
     nodoHerramienta({ nombre: 'evaluar_oferta', descripcion: DESCRIPCION_EVALUAR, subworkflow: 'evaluar-oferta', campo: 'extraccion', posicion: [1020, 760] }),
     nodoHerramienta({ nombre: 'verificar_entidad', descripcion: DESCRIPCION_VERIFICAR, subworkflow: 'verificar-entidad', campo: 'q', posicion: [1180, 760] }),
+    {
+      parameters: {
+        method: 'POST',
+        url: URL_RAG,
+        authentication: 'genericCredentialType',
+        genericAuthType: 'httpHeaderAuth',
+        sendBody: true,
+        contentType: 'json',
+        specifyBody: 'json',
+        jsonBody: "={{ { query: $fromAI('query', 'la pregunta de la persona, en una frase', 'string'), topK: 5 } }}",
+        descriptionType: 'manual',
+        toolDescription: DESCRIPCION_RAG,
+      },
+      id: identificador('bot', 'consultar_rag'),
+      name: 'consultar_rag',
+      // Variante de herramienta del nodo HTTP Request base. El nodo de LangChain toolHttpRequest no funciona con el
+      // Agente 3.1 de n8n 2.44.5: solo suministra datos y el motor pide que la herramienta se ejecute.
+      type: 'n8n-nodes-base.httpRequestTool',
+      typeVersion: 4.5,
+      position: [1340, 760],
+    },
+    {
+      parameters: {
+        method: 'GET',
+        url: URL_RECA_LISTA,
+        authentication: 'genericCredentialType',
+        genericAuthType: 'httpHeaderAuth',
+        descriptionType: 'manual',
+        toolDescription: DESCRIPCION_LISTAR_RECA,
+      },
+      id: identificador('bot', 'listar_reca'),
+      name: 'listar_reca',
+      type: 'n8n-nodes-base.httpRequestTool',
+      typeVersion: 4.5,
+      position: [1500, 760],
+    },
+    {
+      parameters: {
+        method: 'POST',
+        url: URL_RAG,
+        authentication: 'genericCredentialType',
+        genericAuthType: 'httpHeaderAuth',
+        sendBody: true,
+        contentType: 'json',
+        specifyBody: 'json',
+        jsonBody:
+          "={{ { query: $fromAI('query', 'la pregunta de la persona sobre el contrato, en una frase', 'string'), registroReca: $fromAI('registroReca', 'número de registro RECA del contrato, tal como lo da listar_reca', 'string'), topK: 5 } }}",
+        descriptionType: 'manual',
+        toolDescription: DESCRIPCION_CONSULTAR_RECA,
+      },
+      id: identificador('bot', 'consultar_reca'),
+      name: 'consultar_reca',
+      type: 'n8n-nodes-base.httpRequestTool',
+      typeVersion: 4.5,
+      position: [1660, 760],
+    },
     nodoCodigo('Elegir respuesta', codigos.elegir, [1100, 520]),
     {
       parameters: { chatId: alChat, text: '={{ $json.texto }}', additionalFields: { appendAttribution: false } },
@@ -305,6 +377,9 @@ function construirBot({ codigos, instrucciones }) {
       Memoria: aIA('ai_memory'),
       evaluar_oferta: aIA('ai_tool'),
       verificar_entidad: aIA('ai_tool'),
+      consultar_rag: aIA('ai_tool'),
+      listar_reca: aIA('ai_tool'),
+      consultar_reca: aIA('ai_tool'),
     },
     active: false,
     settings: { ...AJUSTES },

@@ -286,6 +286,48 @@ test('verificarConversacion rechaza lo que solo un cálculo puede decir', () => 
   }
 });
 
+test('verificarConversacion deja pasar las cifras que están en las fuentes y rechaza las demás', () => {
+  const fuentes = ['La anualidad es de $1,200 y el CAT promedio es 45.5%.'];
+  assert.deepEqual(R.verificarConversacion('Cuesta $1,200 al año.', fuentes), { ok: true, fallas: [] });
+  assert.deepEqual(R.verificarConversacion('El CAT es 45.50%.', fuentes), { ok: true, fallas: [] });
+  const fuera = R.verificarConversacion('Cuesta $9,999 al año.', fuentes);
+  assert.equal(fuera.ok, false);
+  assert.ok(fuera.fallas.includes('cifra_fuera_de_la_fuente'));
+  assert.ok(R.verificarConversacion('Cuesta $1,200', []).fallas.includes('cifra_sin_calculo'));
+  assert.ok(R.verificarConversacion('Cuesta $1,200').fallas.includes('cifra_sin_calculo'));
+});
+
+test('verificarConversacion acepta cifras que están en las fuentes aunque ahí no lleven $ ni %', () => {
+  // Así vienen las tablas de los PDF reales: el nombre, la dirección y dos números sin símbolo.
+  const fuentes = ['26 Oro (Banorte) www.banorte.com/oro 1,150 95.7 27 Scotia Travel Oro www.scotiabank.com.mx/oro 1,209 96.7'];
+  assert.deepEqual(R.verificarConversacion('Cuesta $1,150 al año y su CAT es 95.7%.', fuentes), { ok: true, fallas: [] });
+  for (const texto of ['Cuesta $1,151 al año.', 'Su CAT es 97.7%.', 'Cuesta $26,000.']) {
+    assert.ok(R.verificarConversacion(texto, fuentes).fallas.includes('cifra_fuera_de_la_fuente'), texto);
+  }
+});
+
+test('recaLista enumera los contratos con su institución y registro, acotada y limpia', () => {
+  const productos = Array.from({ length: 14 }, (_, i) => ({ registroReca: `REG-${i}`, nombre: `Producto\n${i}`, institucion: `Institución ${i}`, estadoReca: '1' }));
+  const texto = R.mensajes.recaLista(productos);
+  assert.match(texto, /Producto 0 .*Institución 0.*REG-0/);
+  assert.ok(texto.includes('REG-9') && !texto.includes('REG-10'));
+  // Es un mensaje fijo armado por el código (encabezado, hasta 10 contratos y una línea de cierre), no texto del modelo.
+  assert.ok(texto.split('\n').length <= 12);
+  assert.match(R.mensajes.recaLista([]), /No tengo contratos/);
+});
+
+test('los avisos de RECA y de Banxico dicen lo acordado', () => {
+  assert.match(R.AVISO_RECA, /RECA/);
+  assert.match(R.AVISO_RECA, /pendiente de validación/);
+  assert.match(R.AVISO_SIE, /no es el CAT ni la tasa de este producto/);
+});
+
+test('los mensajes del RAG dicen lo acordado', () => {
+  assert.match(R.mensajes.ragSinResultados(), /No encontré información/);
+  assert.match(R.mensajes.ragNoDisponible(), /No pude consultar/);
+  assert.match(R.AVISO_RAG, /no es una evaluación de tu oferta/);
+});
+
 // mensajes fijos
 
 test('la bienvenida explica qué hacer y que no es una recomendación', () => {
@@ -313,6 +355,25 @@ test('el mensaje de /verificar sin nombre explica cómo usarlo', () => {
   const texto = R.mensajes.verificarSinNombre();
   assert.ok(texto.includes('/verificar'));
   assert.match(texto, /nombre/);
+});
+
+test('una entidad registrada dice su sector y estatus, y que SIPRES no confirma productos', () => {
+  const texto = R.mensajes.verificacion({ estado: 'registrada', fecha_consulta: FECHA, terminos_buscados: [], entidad: 'Zafiro', sector: 'Sociedades Financieras Populares', estatus: 'En operación' });
+  assert.match(texto, /Sector: Sociedades Financieras Populares/);
+  assert.match(texto, /Estatus en SIPRES: En operación/);
+  assert.match(texto, /no que un producto de crédito esté autorizado/);
+  const sinDatos = R.mensajes.verificacion({ estado: 'registrada', fecha_consulta: FECHA, terminos_buscados: [], entidad: 'Zafiro' });
+  assert.ok(!/Sector:/.test(sinDatos));
+  assert.match(sinDatos, /no que un producto de crédito esté autorizado/);
+});
+
+test('con varias coincidencias se piden más datos y no se dice registrada', () => {
+  const texto = R.mensajes.verificacion({ estado: 'sin_verificar', motivo: 'varias_coincidencias', coincidencias: ['Banco Alfa Norte', 'Banco Beta Sur'], total_coincidencias: 4 });
+  assert.ok(texto.includes('❔'));
+  assert.ok(texto.includes('Banco Alfa Norte') && texto.includes('Banco Beta Sur'));
+  assert.match(texto, /nombre completo o la razón social/);
+  assert.ok(!/registrada/i.test(texto));
+  assert.match(texto, /4/);
 });
 
 test('el mensaje de cobranza avisa que por ahora no se analiza', () => {
@@ -344,6 +405,12 @@ test('ningún mensaje fijo usa palabras prohibidas', () => {
     R.mensajes.error(),
     R.mensajes.cobranza(),
     R.mensajes.verificarSinNombre(),
+    R.mensajes.ragSinResultados(),
+    R.mensajes.ragNoDisponible(),
+    R.mensajes.recaLista([]),
+    R.AVISO_RAG,
+    R.AVISO_RECA,
+    R.AVISO_SIE,
     R.mensajes.aclaracion(['¿Cuántos pagos son?']),
     R.mensajes.verificacion({ estado: 'registrada', fecha_consulta: FECHA, terminos_buscados: [], entidad: 'Zafiro' }),
     R.mensajes.verificacion({ estado: 'no_registrada_confirmada', fecha_consulta: FECHA, terminos_buscados: ['a', 'b'], entidad: 'X' }),

@@ -21,6 +21,7 @@
 const ESTADOS = ['registrada', 'no_registrada_confirmada'];
 const MIN_TERMINOS_CONFIRMACION = 2;
 const MIN_CARACTERES_PARCIAL = 5;
+const MAX_CANDIDATAS = 5;
 
 // Sufijos legales y palabras comunes: no identifican a una empresa.
 const IGNORAR = new Set([
@@ -52,6 +53,11 @@ function coincide(a, b) {
   return chico.length === grande.length || chico.join('').length >= MIN_CARACTERES_PARCIAL;
 }
 
+/** Mismos términos, sin importar el orden. */
+function iguales(a, b) {
+  return a.length > 0 && a.length === b.length && a.every((t) => b.includes(t));
+}
+
 function textoUtil(valor) {
   return typeof valor === 'string' && valor.trim() ? valor.trim() : null;
 }
@@ -75,19 +81,37 @@ function buscarEntidad(tabla, consulta = {}) {
   if (nombres.length === 0) return sinVerificar('sin_nombre_utilizable');
   if (!Array.isArray(tabla)) return sinVerificar('tabla_invalida');
 
-  const coincidencias = tabla.filter((fila) => {
-    if (!fila || typeof fila !== 'object') return false;
-    const propios = [fila.nombre_comercial, fila.razon_social].map(terminos);
-    return propios.some((p) => nombres.some((n) => coincide(n, p)));
-  });
-  if (coincidencias.length === 0) return sinVerificar('no_esta_en_tabla');
+  const evaluadas = [];
+  for (const candidata of tabla) {
+    if (!candidata || typeof candidata !== 'object') continue;
+    const pares = [candidata.nombre_comercial, candidata.razon_social].map(terminos).flatMap((p) => nombres.map((n) => [n, p]));
+    if (pares.some(([n, p]) => coincide(n, p))) evaluadas.push({ fila: candidata, exacta: pares.some(([n, p]) => iguales(n, p)) });
+  }
+  if (evaluadas.length === 0) return sinVerificar('no_esta_en_tabla');
 
+  const coincidencias = evaluadas.map((e) => e.fila);
   const estados = new Set(coincidencias.map((f) => f.estado));
   if (estados.size !== 1 || !ESTADOS.includes(coincidencias[0].estado)) {
     return sinVerificar('coincidencias_contradictorias', { advertencias: ['coincidencias_ambiguas'] });
   }
 
-  const fila = coincidencias[0];
+  // Una coincidencia exacta gana sobre las parciales. Si aun así quedan varias entidades distintas, no se elige una.
+  const exactas = evaluadas.filter((e) => e.exacta);
+  const distintas = new Map();
+  for (const { fila: f } of exactas.length ? exactas : evaluadas) {
+    const clave = `${terminos(f.nombre_comercial).join(' ')}|${terminos(f.razon_social).join(' ')}`;
+    if (!distintas.has(clave)) distintas.set(clave, f);
+  }
+  if (distintas.size > 1) {
+    const nombresCandidatas = Array.from(distintas.values(), (f) => textoUtil(f.nombre_comercial) || textoUtil(f.razon_social)).filter(Boolean);
+    return sinVerificar('varias_coincidencias', {
+      advertencias: ['coincidencias_ambiguas'],
+      coincidencias: nombresCandidatas.slice(0, MAX_CANDIDATAS),
+      total_coincidencias: distintas.size,
+    });
+  }
+
+  const fila = distintas.values().next().value;
   const fecha = textoUtil(fila.fecha_consulta);
   const buscados = Array.isArray(fila.terminos_buscados) ? fila.terminos_buscados.map(textoUtil).filter(Boolean) : [];
   const entidad = textoUtil(fila.nombre_comercial) || textoUtil(fila.razon_social);
@@ -102,6 +126,8 @@ function buscarEntidad(tabla, consulta = {}) {
     entidad,
     motivo: 'ok',
     advertencias: fecha ? [] : ['sin_fecha'],
+    sector: textoUtil(fila.sector),
+    estatus: textoUtil(fila.estatus),
   };
 }
 
