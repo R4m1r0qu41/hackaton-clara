@@ -1,1 +1,10 @@
-
+{
+  "name": "hackaton-clara",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RAG de productos financieros para un agente Node.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
