@@ -1,50 +1,41 @@
+/* Paleta tomada del arte del Clara Hackathon (muestreada del original). */
 :root {
-  --fondo: #f7f7f5;
-  --superficie: #ffffff;
-  --texto: #1b1b1b;
-  --texto-suave: #555555;
-  --linea: #d6d6d0;
-  --acento: #0b4f8a;
-  --acento-texto: #ffffff;
-  --foco: #0b4f8a;
-  --error: #8a1c1c;
+  color-scheme: light;
 
+  --azul: #0010fe;          /* fondo */
+  --azul-franja: #1b4bff;   /* franja clara */
+  --marino: #010a7e;        /* barras oscuras del mapa del arte */
+  --verde-marca: #6be64a;   /* acento del logo: solo botones y detalles, no el semáforo */
+  --verde-marca-sombra: #2f9f1a;
+  --blanco: #ffffff;
+  --velo: #dfe6ff;          /* texto suave sobre el azul */
+
+  --texto: #0a0f3d;
+  --texto-suave: #4a4f78;
+  --linea: #cfd5f5;
+
+  /* Semáforo: colores propios, distintos del verde de marca */
   --verde: #1e7a3c;
   --amarillo: #8a6a00;
   --amarillo-fondo: #fff4c2;
   --rojo: #b3261e;
   --gris: #4d4d4d;
+  --error: #b3261e;
 
-  --radio: 10px;
+  --radio: 14px;
   --gutter: 16px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --fondo: #141414;
-    --superficie: #1e1e1e;
-    --texto: #f0f0ee;
-    --texto-suave: #b5b5b0;
-    --linea: #3a3a38;
-    --acento: #7db7ee;
-    --acento-texto: #101010;
-    --foco: #7db7ee;
-    --error: #ff9b94;
-    --verde: #6fd08c;
-    --amarillo: #f2c94c;
-    --amarillo-fondo: #3a3000;
-    --rojo: #ff8a80;
-    --gris: #c8c8c4;
-  }
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: var(--fondo);
-  color: var(--texto);
+  color: var(--blanco);
+  background-color: var(--azul);
+  /* franjas horizontales del arte */
+  background-image: repeating-linear-gradient(180deg, var(--azul) 0 17px, var(--azul-franja) 17px 24px);
   font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
 }
 
 .cabecera, main, .pie {
@@ -54,101 +45,184 @@ body {
   padding-right: var(--gutter);
 }
 
-.cabecera { padding-top: 16px; padding-bottom: 8px; }
-.marca { color: var(--texto); font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+.cabecera { padding-top: 18px; padding-bottom: 6px; }
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--blanco);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+.marca::before {
+  content: "";
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--verde-marca);
+  box-shadow: 0 0 0 3px var(--marino);
+}
 
-h1, h2 { line-height: 1.2; margin: 16px 0 8px; }
-h1 { font-size: 1.6rem; }
-h2 { font-size: 1.35rem; }
+.hero {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+  border-radius: var(--radio);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 0 var(--marino);
+}
+
+h1, h2 { line-height: 1.1; margin: 28px 0 10px; color: var(--blanco); font-weight: 800; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.7rem; }
+h1::after, h2::after {
+  content: "";
+  display: block;
+  width: 56px; height: 6px;
+  margin-top: 10px;
+  border-radius: 3px;
+  background: var(--verde-marca);
+}
 h3 { font-size: 1.05rem; margin: 0 0 4px; }
 h1:focus, h2:focus { outline: none; }
 
 .vista[hidden] { display: none; }
-.ayuda, .nota { color: var(--texto-suave); }
+.ayuda, .nota { color: var(--velo); }
 .nota { font-size: 0.9rem; }
+.ayuda a, .nota a, .pie a { color: var(--blanco); font-weight: 600; }
 
-a { color: var(--acento); }
-:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+a { color: var(--azul); }
+:focus-visible { outline: 3px solid var(--verde-marca); outline-offset: 3px; }
+.hoja :focus-visible, .tarjeta :focus-visible { outline-color: var(--azul); }
 
-.botones { display: grid; gap: 12px; margin: 16px 0; }
-.acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+/* Botones */
+.botones { display: grid; gap: 16px; margin: 20px 0; }
+.acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
 
 .boton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 10px 18px;
-  border: 2px solid var(--acento);
+  min-height: 52px;
+  padding: 10px 20px;
+  border: 3px solid var(--marino);
   border-radius: var(--radio);
-  background: var(--superficie);
-  color: var(--acento);
+  background: var(--blanco);
+  color: var(--marino);
   font: inherit;
-  font-weight: 600;
+  font-weight: 800;
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 5px 0 var(--marino);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-.boton.grande { min-height: 64px; font-size: 1.1rem; justify-content: flex-start; }
-.boton.primario { background: var(--acento); color: var(--acento-texto); }
-.boton[disabled] { opacity: 0.6; cursor: progress; }
+.boton:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--marino); }
+.boton:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--marino); }
+.boton.primario { background: var(--verde-marca); color: var(--marino); }
+.boton[disabled] { opacity: 0.65; cursor: progress; transform: none; }
 
-label { display: block; font-weight: 600; margin: 12px 0 4px; }
+/* Acciones de inicio: tarjeta blanca con flecha verde */
+.boton.grande {
+  min-height: 76px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  font-size: 1.2rem;
+  text-align: left;
+}
+.boton.grande::after {
+  content: "→";
+  flex: none;
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--marino);
+  background: var(--verde-marca);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boton { transition: none; }
+  .boton:hover, .boton:active { transform: none; }
+}
+
+/* Formularios sobre hoja blanca */
+.hoja {
+  margin-top: 16px;
+  padding: 16px;
+  border: 3px solid var(--marino);
+  border-radius: var(--radio);
+  background: var(--blanco);
+  color: var(--texto);
+  box-shadow: 0 6px 0 var(--marino);
+}
+.hoja .nota, .hoja .ayuda { color: var(--texto-suave); }
+
+label { display: block; font-weight: 700; margin: 0 0 6px; color: var(--texto); }
 textarea, input[type="search"] {
   width: 100%;
   padding: 12px;
   border: 2px solid var(--linea);
-  border-radius: var(--radio);
-  background: var(--superficie);
+  border-radius: 10px;
+  background: #f6f7ff;
   color: var(--texto);
   font: inherit; /* 16px: evita el zoom de iOS */
 }
+textarea:focus, input[type="search"]:focus { border-color: var(--azul); background: var(--blanco); }
 textarea { resize: vertical; }
 
-.error { color: var(--error); font-weight: 600; margin: 8px 0 0; }
+.error { color: var(--error); font-weight: 700; margin: 8px 0 0; }
+#resultado-acceso > .error { color: var(--blanco); background: var(--rojo); padding: 8px 12px; border-radius: 10px; }
 
 /* Tarjetas de resultado */
 .tarjeta {
-  margin-top: 16px;
+  margin-top: 18px;
   padding: 14px;
-  border: 1px solid var(--linea);
+  border: 3px solid var(--marino);
   border-radius: var(--radio);
-  background: var(--superficie);
+  background: var(--blanco);
+  color: var(--texto);
+  box-shadow: 0 6px 0 var(--marino);
 }
-.tarjeta + .tarjeta { margin-top: 12px; }
+.tarjeta + .tarjeta { margin-top: 18px; }
 .tarjeta p { margin: 4px 0; }
 .tarjeta ul { margin: 4px 0; padding-left: 20px; }
+.tarjeta .nota { color: var(--texto-suave); }
 
 .franja-ejemplo {
-  margin-top: 16px;
+  margin-top: 18px;
   padding: 10px 14px;
-  border: 2px dashed var(--amarillo);
+  border: 3px dashed var(--marino);
   border-radius: var(--radio);
   background: var(--amarillo-fondo);
   color: var(--texto);
-  font-weight: 600;
+  font-weight: 800;
 }
 
 /* Semáforo: círculo + palabra + línea; nunca solo color */
 .semaforo { display: flex; gap: 12px; align-items: flex-start; }
 .punto {
   flex: none;
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   border: 3px solid currentColor;
   display: grid; place-items: center;
-  font-weight: 800; font-size: 1.1rem;
+  font-weight: 800; font-size: 1.15rem;
 }
 .semaforo.verde { color: var(--verde); }
 .semaforo.amarillo { color: var(--amarillo); }
 .semaforo.rojo { color: var(--rojo); }
 .semaforo.gris { color: var(--gris); }
-.semaforo .palabra { font-weight: 700; font-size: 1.1rem; color: var(--texto); }
+.semaforo .palabra { font-weight: 800; font-size: 1.15rem; color: var(--texto); }
 .semaforo .linea { color: var(--texto-suave); margin: 0; }
 .semaforo.verde .punto { background: currentColor; }
-.semaforo.verde .punto::after { content: "✓"; color: var(--superficie); }
+.semaforo.verde .punto::after { content: "✓"; color: var(--blanco); }
 .semaforo.amarillo .punto::after { content: "!"; }
 .semaforo.rojo .punto { background: currentColor; }
-.semaforo.rojo .punto::after { content: "!"; color: var(--superficie); }
+.semaforo.rojo .punto::after { content: "!"; color: var(--blanco); }
 .semaforo.gris .punto::after { content: "?"; }
 
 .texto-respuesta { white-space: pre-wrap; margin: 12px 0 0; }
@@ -156,55 +230,60 @@ textarea { resize: vertical; }
 .etiqueta {
   display: inline-block;
   padding: 2px 10px;
-  border: 1px solid var(--linea);
+  border: 2px solid var(--marino);
   border-radius: 999px;
+  background: var(--verde-marca);
+  color: var(--marino);
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 /* Señal SIPRES */
 .sipres { display: flex; gap: 12px; align-items: flex-start; }
-.icono { flex: none; width: 48px; height: 44px; }
-.sipres h3 { margin-top: 2px; }
+.icono { flex: none; width: 52px; height: 48px; }
+.sipres h3 { margin-top: 2px; font-size: 1.15rem; }
 
-/* Triángulo: variables que lee el <symbol> de index.html */
-/* Entidad que SIPRES no confirma (sin_verificar o no_registrada_confirmada): blanco y negro, por decisión de JR.
+/* Entidad no confirmada por SIPRES (sin_verificar o no_registrada_confirmada): blanco y negro, por decisión de JR.
    La diferencia entre las dos está en el texto, no en el color. */
 .tri-bn, .tri-confirmada { --tri-fondo: #ffffff; --tri-borde: #000000; --tri-signo: #000000; }
 .tri-ok { --tri-fondo: #ffffff; --tri-borde: #555555; --tri-signo: #555555; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .tri-bn,
-  :root:not([data-theme="light"]) .tri-confirmada { --tri-fondo: #ffffff; --tri-borde: #ffffff; --tri-signo: #000000; }
-}
 
-details.fuente { margin-top: 12px; }
-details.fuente summary { cursor: pointer; font-weight: 700; padding: 8px 0; min-height: 44px; }
+details.fuente { margin-top: 18px; }
+details.fuente summary { cursor: pointer; font-weight: 800; padding: 8px 0; min-height: 44px; }
 
 /* Acceso por estado */
-.estados { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.estados { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 12px; }
 .estado-fila {
   width: 100%;
   display: grid;
-  gap: 4px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 12px 14px;
   text-align: left;
-  border: 1px solid var(--linea);
+  border: 3px solid var(--marino);
   border-radius: var(--radio);
-  background: var(--superficie);
+  background: var(--blanco);
   color: var(--texto);
   font: inherit;
   cursor: pointer;
+  box-shadow: 0 5px 0 var(--marino);
 }
-.estado-fila[aria-pressed="true"] { border: 2px solid var(--acento); }
-.estado-fila .valor { font-weight: 700; }
-.pista { height: 12px; border-radius: 6px; background: var(--linea); overflow: hidden; }
-.relleno { height: 100%; background: var(--acento); }
+.estado-fila[aria-pressed="true"] { background: var(--verde-marca); }
+.estado-fila .valor { font-weight: 800; }
+.pista { height: 14px; border-radius: 7px; border: 2px solid var(--marino); background: var(--blanco); overflow: hidden; }
+.relleno { height: 100%; background: var(--azul); }
 .pista.faltante {
-  background: repeating-linear-gradient(45deg, var(--linea) 0 6px, var(--superficie) 6px 12px);
+  background: repeating-linear-gradient(45deg, var(--linea) 0 6px, var(--blanco) 6px 12px);
 }
 
-.pie { padding-top: 24px; padding-bottom: 32px; color: var(--texto-suave); font-size: 0.85rem; }
-
-@media (min-width: 640px) {
-  .botones { grid-template-columns: 1fr; }
+.pie { padding-top: 28px; padding-bottom: 36px; color: var(--velo); font-size: 0.85rem; }
+.pie-logo {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin-bottom: 14px;
+  border-radius: var(--radio);
+  border: 2px solid rgba(255, 255, 255, 0.35);
 }
+/* En el inicio el logo ya sale arriba */
+body[data-vista="inicio"] .pie-logo { display: none; }

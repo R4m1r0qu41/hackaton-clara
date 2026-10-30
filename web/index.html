@@ -8,7 +8,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-vista="inicio">
   <!-- Íconos: el triángulo toma sus colores de las variables de .tri-* en styles.css -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="ic-advertencia" viewBox="0 0 100 90">
@@ -28,6 +28,8 @@
 
   <main id="contenido">
     <section id="inicio" class="vista" aria-labelledby="t-inicio">
+      <img class="hero" src="img/hackathon-clara.png" width="860" height="310"
+           alt="Clara Hackathon, Mexico Tech Week, powered by Tecnológico de Monterrey">
       <h1 id="t-inicio" tabindex="-1">¿Qué quieres entender?</h1>
       <div class="botones">
         <a class="boton grande" href="#/oferta">Revisar una oferta</a>
@@ -40,7 +42,7 @@
     <section id="oferta" class="vista" aria-labelledby="t-oferta" hidden>
       <h2 id="t-oferta" tabindex="-1">Revisar una oferta</h2>
       <p class="ayuda">Pega el texto de una oferta o de una etiqueta de crédito.</p>
-      <form id="form-oferta" novalidate>
+      <form id="form-oferta" class="hoja" novalidate>
         <label for="texto-oferta">Texto de la oferta</label>
         <textarea id="texto-oferta" rows="5" maxlength="5000" aria-describedby="error-oferta"></textarea>
         <p id="error-oferta" class="error" role="alert" hidden></p>
@@ -55,7 +57,7 @@
     <section id="entidad" class="vista" aria-labelledby="t-entidad" hidden>
       <h2 id="t-entidad" tabindex="-1">Verificar una entidad</h2>
       <p class="ayuda">Escribe el nombre de la institución. Si no está en nuestra tabla, te llevamos a SIPRES para que la verifiques ahí.</p>
-      <form id="form-entidad" novalidate>
+      <form id="form-entidad" class="hoja" novalidate>
         <label for="q-entidad">Nombre de la entidad</label>
         <input id="q-entidad" type="search" autocomplete="off" aria-describedby="error-entidad">
         <p id="error-entidad" class="error" role="alert" hidden></p>
@@ -73,6 +75,8 @@
   </main>
 
   <footer class="pie">
+    <img class="pie-logo" src="img/hackathon-clara.png" width="860" height="310"
+         alt="Clara Hackathon, Mexico Tech Week, powered by Tecnológico de Monterrey">
     <p>Esta página no guarda lo que escribes. La información es de apoyo y no es asesoría financiera ni una recomendación.</p>
   </footer>
 

@@ -144,6 +144,13 @@ Solo con P0 estable y con el adaptador de ~30 minutos que v3 describe:
 - Prueba 2E: el enlace del bot de Telegram abre la página.
 - Mapa con y sin dato: trazos o barras, con periodo y fuente.
 
+## Identidad visual
+
+- La página usa la paleta del arte del Clara Hackathon (colores muestreados del original): azul `#0010fe` con franjas `#1b4bff`, marino `#010a7e`, verde de marca `#6be64a` y blanco. Las franjas horizontales del fondo salen del arte.
+- Los logos de Clara Hackathon, Mexico Tech Week y Tecnológico de Monterrey van en `web/img/hackathon-clara.png`: es un recorte del arte oficial que dio JR (raster, no vectorial). En el inicio sale arriba; en las demás pantallas, al pie.
+- El verde de marca solo se usa en botones y detalles. **No** se usa para el semáforo, que conserva sus colores propios (el verde del semáforo es otro, más oscuro), para que un botón verde no se lea como «sin señales».
+- Pendiente: que JR confirme que el uso de los logos está permitido por las reglas del Hub, y pedir los archivos vectoriales si existen.
+
 ## Estado de la construcción
 
 Construido en `web/` el 30/10/2026, contra los stubs del servidor (todo marcado como ejemplo): `index.html`, `styles.css`, `app.js`, `logica.js` y `test/logica.test.js`.

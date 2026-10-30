@@ -103,6 +103,7 @@
     const hash = location.hash.replace(/^#\/?/, '');
     const id = VISTAS.includes(hash) ? hash : 'inicio';
     for (const v of VISTAS) document.getElementById(v).hidden = v !== id;
+    document.body.dataset.vista = id;
     const titulo = document.querySelector(`#${id} h1, #${id} h2`);
     if (titulo) titulo.focus({ preventScroll: false });
     if (id === 'acceso' && !accesoCargado) cargarAcceso();
