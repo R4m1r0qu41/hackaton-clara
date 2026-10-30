@@ -1,6 +1,6 @@
-# Cuentas Claras — diseño de la página (`web/`) adaptado al plan v3
+# Cuenta Clara(s) — diseño de la página (`web/`) adaptado al plan v3
 
-> Nombre del proyecto: **Cuentas Claras** (antes «Crédito Claro»), por indicación de JR el 30/10/2026. Los demás documentos del repo conservan el nombre anterior hasta que JR los actualice.
+> Nombre del proyecto: **Cuenta Clara(s)** (antes «Crédito Claro»), por indicación de JR el 30/10/2026. El «(s)» es un guiño a Clara y se escribe siempre con paréntesis. Los demás documentos del repo conservan el nombre anterior hasta que JR los actualice.
 
 `Hackathon Clara · 30/10/2026 · Tareas 2C y 2D del Equipo 2 · Base: plan-equipo v3 y stubs de server/routes.js`
 
@@ -151,7 +151,7 @@ Solo con P0 estable y con el adaptador de ~30 minutos que v3 describe:
 - La página usa la paleta del arte del Clara Hackathon (colores muestreados del original): azul `#0010fe` con franjas `#1b4bff`, marino `#010a7e`, verde de marca `#6be64a` y blanco. Las franjas horizontales del fondo salen del arte.
 - Los logos de Clara Hackathon, Mexico Tech Week y Tecnológico de Monterrey van en `web/img/hackathon-clara.png`: es un recorte del arte oficial que dio JR (raster, no vectorial). En el inicio sale arriba; en las demás pantallas, al pie.
 - El verde de marca solo se usa en botones y detalles. **No** se usa para el semáforo, que conserva sus colores propios (el verde del semáforo es otro, más oscuro), para que un botón verde no se lea como «sin señales».
-- Pendiente: que JR confirme que el uso de los logos está permitido por las reglas del Hub, y pedir los archivos vectoriales si existen.
+- Permiso: JR confirmó (30/10/2026) que Clara y Mexico Tech Week autorizan el uso de los logos. Pendiente solo pedir los archivos vectoriales si existen, para cambiar el recorte.
 
 ## Estado de la construcción
 
