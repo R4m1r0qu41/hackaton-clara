@@ -47,7 +47,7 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
   1. **Semáforo:** círculo de color + palabra + una línea (ver «Semáforo»). Nunca solo color.
   2. **Texto** de la respuesta (`texto`).
   3. **Origen:** etiqueta `modelo` / `plantilla` / `ejemplo`. Con `plantilla`: «Respuesta con plantilla fija: el modelo no estuvo disponible». Es la parte visible del respaldo que exige `docs/ACCEPTANCE.md`.
-  4. **SIPRES:** `estado_sipres` en palabras.
+  4. **SIPRES:** `estado_sipres` en palabras, con la misma señal de advertencia de la pantalla 3.
   5. **Advertencias** (`advertencias[]`), en lenguaje simple.
   6. **¿De dónde sale?** (ver la brecha 1).
 - Error 400 o servidor apagado: mensaje fijo, sin pantalla en blanco. No se repite el texto del usuario ni se guarda.
@@ -55,13 +55,13 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 ### 3 · Verificar una entidad (`GET /api/verificar?q=`)
 
 - Campo de búsqueda, desde 3 caracteres (el servidor responde `sin_verificar` con menos).
-- La página muestra el estado **en palabras, con un ícono neutro**, más la fecha y los términos buscados. **Sin colores de semáforo:** `/api/verificar` no devuelve `color`, y la página no decide (la regla de «al menos 2 términos» vive en `sipres.js`). Estar registrada tampoco es «sin riesgos».
+- La página muestra el estado **en palabras, con un ícono** (ver «Señal de advertencia»), más la fecha y los términos buscados. **Sin colores de semáforo:** `/api/verificar` no devuelve `color`, y la página no decide (la regla de «al menos 2 términos» vive en `sipres.js`). Estar registrada tampoco es «sin riesgos».
 
-| `estado` | Mensaje (propuesta) |
-|---|---|
-| `registrada` | «Aparece como registrada en SIPRES, consulta del [`fecha_consulta`]» + términos buscados |
-| `no_registrada_confirmada` | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [`fecha_consulta`]» |
-| `sin_verificar` | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES |
+| `estado` | Ícono | Mensaje (propuesta) |
+|---|---|---|
+| `registrada` | Paloma neutra | «Aparece como registrada en SIPRES, consulta del [`fecha_consulta`]» + términos buscados |
+| `no_registrada_confirmada` | **Triángulo de advertencia** (borde rojo) | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [`fecha_consulta`]» |
+| `sin_verificar` | **Triángulo de advertencia** (borde gris) | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES |
 
 - Que la entidad no esté en nuestra tabla (`motivo: no_esta_en_tabla`) es siempre `sin_verificar`, nunca «no registrada». Ninguna palabra como «fraude» ni «estafa».
 - Si JR quiere colores en esta pantalla, el Equipo 1 devuelve `color` desde el servidor (brecha 6).
@@ -87,6 +87,14 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 | `n.a.` | Sin cálculo | Sin círculo; se muestra solo el texto. |
 
 Cada color lleva palabra e ícono, por accesibilidad. Los umbrales los valida JR; la página no los calcula.
+
+## Señal de advertencia (SIPRES no encontrada)
+
+- Triángulo de advertencia: fondo amarillo, signo de exclamación negro, borde grueso. Se dibuja como SVG propio dentro de `web/` (sin imagen externa ni dependencia).
+- Se usa cuando SIPRES no confirma a la entidad: `no_registrada_confirmada` y `sin_verificar`, en la pantalla 3 y en el bloque SIPRES del resultado de una oferta.
+- **Borde rojo solo con `no_registrada_confirmada`**, que es un hecho con fecha y términos buscados. Con `sin_verificar` el borde es gris: no sabemos si está registrada, y v3 prohíbe que eso se vea como rojo.
+- Siempre con texto al lado («No aparece en SIPRES» o «No pudimos verificarla») y `role="img"` con nombre «Advertencia». Nunca solo el ícono.
+- La página elige el ícono según el `estado` que manda el servidor; no calcula ningún veredicto.
 
 ## Marcadores del dato
 
