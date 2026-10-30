@@ -28,7 +28,7 @@
       verde: `No detectamos riesgos con la información consultada${datosAl ? ` el ${datosAl}` : ''}. No es una recomendación.`,
       amarillo: 'El motivo está en el texto de abajo.',
       rojo: 'Hay un hecho verificado, con fecha y fuente, en el texto de abajo.',
-      gris: 'No pudimos verificarla. Verifícala en SIPRES.',
+      gris: 'Falta información para evaluarla; el motivo está en el texto de abajo.',
     };
     return { clave: color, palabra: base.palabra, linea: lineas[color] };
   }
@@ -69,7 +69,7 @@
   }
 
   function textoOrigen(origen) {
-    if (origen === 'llm') return { etiqueta: 'Modelo', detalle: 'Redactado por el modelo y verificado por el código.' };
+    if (origen === 'llm') return { etiqueta: 'Modelo', detalle: 'Redactado por el modelo y revisado por el código.' };
     if (origen === 'plantilla') {
       return { etiqueta: 'Plantilla', detalle: 'Respuesta con plantilla fija: el modelo no estuvo disponible.' };
     }

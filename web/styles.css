@@ -168,11 +168,13 @@ textarea { resize: vertical; }
 .sipres h3 { margin-top: 2px; }
 
 /* Triángulo: variables que lee el <symbol> de index.html */
-.tri-bn { --tri-fondo: #ffffff; --tri-borde: #000000; --tri-signo: #000000; }              /* no encontrada: blanco y negro */
-.tri-confirmada { --tri-fondo: #ffd400; --tri-borde: #d62828; --tri-signo: #000000; }      /* confirmada con hecho y fecha */
+/* Entidad que SIPRES no confirma (sin_verificar o no_registrada_confirmada): blanco y negro, por decisión de JR.
+   La diferencia entre las dos está en el texto, no en el color. */
+.tri-bn, .tri-confirmada { --tri-fondo: #ffffff; --tri-borde: #000000; --tri-signo: #000000; }
 .tri-ok { --tri-fondo: #ffffff; --tri-borde: #555555; --tri-signo: #555555; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .tri-bn { --tri-fondo: #ffffff; --tri-borde: #ffffff; --tri-signo: #000000; }
+  :root:not([data-theme="light"]) .tri-bn,
+  :root:not([data-theme="light"]) .tri-confirmada { --tri-fondo: #ffffff; --tri-borde: #ffffff; --tri-signo: #000000; }
 }
 
 details.fuente { margin-top: 12px; }

@@ -60,7 +60,7 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 | `estado` | Ícono | Mensaje (propuesta) |
 |---|---|---|
 | `registrada` | Paloma neutra | «Aparece como registrada en SIPRES, consulta del [`fecha_consulta`]» + términos buscados |
-| `no_registrada_confirmada` | **Triángulo de advertencia** (borde rojo) | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [`fecha_consulta`]» |
+| `no_registrada_confirmada` | **Triángulo de advertencia en blanco y negro** | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [`fecha_consulta`]» |
 | `sin_verificar` | **Triángulo de advertencia en blanco y negro** | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES |
 
 - Que la entidad no esté en nuestra tabla (`motivo: no_esta_en_tabla`) es siempre `sin_verificar`, nunca «no registrada». Ninguna palabra como «fraude» ni «estafa».
@@ -83,7 +83,7 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 | `verde` | Sin señales | «No detectamos riesgos con la información consultada el [`datos_al` de `/api/salud`]. No es una recomendación». |
 | `amarillo` | Ojo | El motivo viene en el texto del motor. |
 | `rojo` | Alerta con hecho | Solo con un hecho verificado y su fecha. |
-| `gris` | Sin verificar | «No pudimos verificarla» + enlace. |
+| `gris` | Sin verificar | «Falta información para evaluarla; el motivo está en el texto». El estado de SIPRES va en su propio bloque. |
 | `n.a.` | Sin cálculo | Sin círculo; se muestra solo el texto. |
 
 Cada color lleva palabra e ícono, por accesibilidad. Los umbrales los valida JR; la página no los calcula.
@@ -93,7 +93,7 @@ Cada color lleva palabra e ícono, por accesibilidad. Los umbrales los valida JR
 - Triángulo de advertencia con signo de exclamación y borde grueso. Se dibuja como SVG propio dentro de `web/` (sin imagen externa ni dependencia).
 - Se usa cuando SIPRES no confirma a la entidad: `no_registrada_confirmada` y `sin_verificar`, en la pantalla 3 y en el bloque SIPRES del resultado de una oferta.
 - **Decisión de JR (30/10/2026): si la entidad no está, la advertencia va en blanco y negro.** Es el caso de `sin_verificar` (la entidad no está en nuestra tabla): fondo blanco, borde y signo negros. Sin rojo ni amarillo, porque no sabemos si está registrada y v3 prohíbe que eso se vea como rojo.
-- La versión amarilla con borde rojo queda solo para `no_registrada_confirmada`, que es un hecho con fecha y términos buscados. **Por confirmar con JR** si también esa va en blanco y negro.
+- `no_registrada_confirmada` también va en blanco y negro: «si no está, la advertencia va en blanco y negro». La diferencia con `sin_verificar` está solo en el texto («No aparece en SIPRES» frente a «No pudimos verificarla»). La versión amarilla con borde rojo se puede recuperar cambiando `.tri-confirmada` en `styles.css`, si JR la quiere.
 - Cualquier institución se puede verificar: la tabla propia cubre solo unas cuantas entidades, y para el resto la página lleva a SIPRES (CONDUSEF) con el enlace oficial. La página no afirma que una entidad está o no registrada sin que el servidor lo diga.
 - Siempre con texto al lado («No aparece en SIPRES» o «No pudimos verificarla») y `role="img"` con nombre «Advertencia». Nunca solo el ícono.
 - La página elige el ícono según el `estado` que manda el servidor; no calcula ningún veredicto.
