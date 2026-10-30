@@ -148,4 +148,88 @@ Cobertura de todo el repo: 97.48% de líneas, 91.28% de ramas. `empaquetar.js`: 
 - **No se importó nada en el n8n del equipo.** Se validó en un contenedor temporal.
 - **Falta probarlo como herramienta del agente** ("Call n8n Workflow Tool"): es de la fase 3.
 - **La CLI ignora los datos fijados.** La validación completa usó una copia temporal con un nodo Code de ejemplo; los workflows entregados conservan los datos fijados para el editor.
-- **Faltan** el workflow principal (Telegram, Switch, agente) y las credenciales.
+- **Faltaban** el workflow principal (Telegram, Switch, agente) y las credenciales: son la fase 3, abajo.
+
+## Fase 3: workflow principal con agente
+
+Plan: fase 3 de `plan-n8n-agente.md`. La decisión de diseño que salió del plan: el verificador solo sabe comparar contra un cálculo, pero el agente también conversa. Por eso la salida la decide el código (`elegirSalida`), no el modelo.
+
+| Tarea | Prueba | Rojo | Verde |
+|---|---|---|---|
+| Clasificar el mensaje de Telegram | `motor/flujo/mensaje.test.js` (12) | `Cannot find module './mensaje'` | 12 de 12 |
+| Elegir la salida tras el agente | `motor/flujo/salida.test.js` (16) | `Cannot find module './salida'` | 16 de 16 |
+| Verificación de texto sin cálculo y mensaje de `/verificar` sin nombre | `motor/respuesta/respuesta.test.js` (+3) | `verificarConversacion` y `verificarSinNombre` inexistentes | 35 de 35 |
+| Workflow principal y nodos nuevos | `scripts/empaquetar.test.js` (de 19 a 33) | 17 fallos (nodos, `bot.json`, instrucciones, archivos al día) | 33 de 33 tras generar |
+
+Dos pruebas anteriores cambiaron porque su contrato evolucionó (no se relajó ninguna comprobación): "elegir_respuesta" ahora recibe la salida del agente, y la de conexiones se limitó a los dos sub-workflows.
+
+| # | Garantía | Prueba | Resultado |
+|---|---|---|---|
+| 36 | Texto libre va al agente; `/verificar nombre` a la búsqueda; el resto, a respuestas fijas; sin chat se ignora; no se copian datos de quien escribe | `mensaje.test.js` | PASS |
+| 37 | Si el agente falló, aviso de servicio; si la herramienta de cálculo pidió un dato, sale su pregunta, diga lo que diga el modelo; si hubo cálculo, texto del modelo solo si pasa el verificador, si no la plantilla; si verificó una entidad, el mensaje de la herramienta | `salida.test.js` | PASS |
+| 38 | Solo se lee lo que devolvió la herramienta (`observation`), no lo que el modelo le pidió (`toolInput`): un resultado falsificado no se usa | `salida.test.js` | PASS |
+| 39 | Sin herramientas, un texto con cifras, colores de semáforo, enlaces o palabras prohibidas se rechaza | `respuesta.test.js`, `salida.test.js` | PASS |
+| 40 | `bot.json`: nodos, tipos y versiones; conexiones principales y de IA; herramientas ligadas a los sub-workflows por su identificador; agente con pasos intermedios, reintento y `continueRegularOutput`; Telegram sin la firma de n8n y al chat de origen | `empaquetar.test.js` | PASS |
+
+Mutaciones en copias temporales: `salida.js` leyendo también `toolInput` rompe 2 pruebas; mandar `/verificar` sin nombre a la búsqueda rompe 1.
+
+**Validación en un n8n 2.44.5 temporal** (contenedor aparte, sin tocar el del equipo):
+
+- Los tres workflows se importan tal como se entregan y conservan sus identificadores.
+- Ruteo y salida, ejecutados con el nodo Switch y los nodos Code reales (solo se sustituyeron Telegram, el agente y el envío por nodos de prueba):
+
+| Entrada | Camino | Resultado |
+|---|---|---|
+| `/start` | Mensaje fijo | Bienvenida |
+| `/verificar Entidad de ejemplo` | Verificar entidad | `sin_verificar` (tabla vacía) |
+| `/verificar` | Mensaje fijo | Explica cómo usarlo |
+| Foto | Mensaje fijo | "Por ahora solo leo texto" |
+| Texto, agente correcto | Elegir respuesta | Sale el texto del agente |
+| Texto, agente inventa `$99,999` | Elegir respuesta | Sale la plantilla |
+| Texto, agente falla | Elegir respuesta | Aviso de servicio |
+
+Todas con `chat_id` correcto y estado `success`.
+
+Cobertura de todo el repo: 97.96% de líneas, 92.69% de ramas. `mensaje.js` 100%, `salida.js` 100%.
+
+**Huecos de la fase 3**
+
+- **El nodo Agente no se había ejecutado.** Se probó después con un modelo simulado (sección siguiente). Sigue sin probarse con un modelo real y su credencial.
+- **El modelo es un valor de partida** (`deepseek/deepseek-chat` por OpenRouter). Hay que elegir uno que soporte herramientas y asignar la credencial (D4).
+- **Telegram:** falta la credencial y una URL pública para el disparador (D6).
+- **La memoria es de RAM**, por chat y de seis mensajes (D1).
+- **La tabla de SIPRES sigue vacía.**
+- **El RAG (CU8) no está.** Con el diseño actual, una respuesta conversacional con cifras se rechaza; una del RAG con cifras también, hasta definir su contrato (D5).
+
+## Prueba del agente con un modelo simulado
+
+**Cómo se hizo.** Un servidor local compatible con OpenAI (un script de Node que no se versiona) hace de modelo: según una marca en el texto de la persona, llama a una herramienta, responde, inventa una cifra o falla con un error 500. Se corrió el workflow `bot.json` real en un contenedor desechable de n8n 2.44.5, **con servidor** (`n8n start`), sin tocar el n8n del equipo. Solo se sustituyeron el disparador de Telegram por un Webhook y el envío por un nodo de prueba; el agente, la memoria, las herramientas y el verificador son los entregados. La credencial de OpenRouter apuntaba al servidor simulado.
+
+| Escenario | Qué hizo el modelo simulado | Lo que se envió | Origen |
+|---|---|---|---|
+| Cálculo correcto | Llamó a `evaluar_oferta` y redactó con las cifras | El texto del agente | `llm` |
+| Cifra inventada (`$99,999`) | Llamó a la herramienta y añadió una cifra | La plantilla del cálculo | `plantilla` (rechazo) |
+| Falta un dato | Llamó a la herramienta y dijo otra cosa | La pregunta de la herramienta | `herramienta` |
+| Entidad | Llamó a `verificar_entidad` y dijo "Sí, es segura, contrátala" | El mensaje de la herramienta | `herramienta` |
+| Saludo | No llamó a ninguna herramienta | El saludo | `llm` (conversación) |
+| El modelo falla (500) | Error en cada intento | Aviso de servicio | `servicio` |
+| Herramienta inactiva | Llamó a la herramienta, que falló | Aviso de servicio | `servicio` (`herramienta_fallida`) |
+| Dos mensajes en el mismo chat | El segundo recibió `[system, user, assistant, tool, assistant, user]` | Memoria con el historial completo | — |
+
+**Lo que se observó de n8n 2.44.5**
+
+- `observation` de cada paso es **texto JSON con la lista de ítems** de la herramienta (`[{"accion":"redactar",...}]`); `toolInput` es un objeto. El lector ya lo leía; quedó como caso de prueba.
+- El agente usó el modelo **sin streaming**, vio las dos herramientas por su nombre y, con el modelo en error, hizo **2 intentos** (el reintento configurado) y siguió con `error` en la salida.
+- **Los sub-workflows deben estar publicados.** Sin eso, la herramienta devuelve `Workflow is not active and cannot be executed`. Esto expuso un hueco: si el agente llamaba a la herramienta y esta fallaba, su texto habría pasado por la vía de conversación si no traía cifras ("Parece una oferta razonable"). Se corrigió con pruebas primero: 2 rojos, ahora `herramienta_fallida` cuando se llamó a `evaluar_oferta` o `verificar_entidad` y no hubo resultado válido. 3 pruebas nuevas, 198 en total.
+- `n8n execute` no sirve para probar herramientas de sub-workflow (corre sin el gestor de workflows activos); hace falta el servidor.
+- Un webhook llamado justo al arrancar el servidor da 404 aunque `/healthz` responda; hay que esperar o reintentar.
+
+**Lo que esta prueba no cubre.** Un modelo simulado no dice nada de cómo extrae o redacta un modelo real. Tampoco prueba Telegram, la URL pública, las credenciales reales, ni el streaming con otros modelos.
+
+### Para ponerlo en marcha en el n8n del equipo
+
+1. Crear la cuenta de propietario e importar los tres JSON de `n8n/workflows/` (menú ⋯, "Import from file").
+2. **Publicar `evaluar_oferta` y `verificar_entidad`** (sin esto, el bot responde siempre con el aviso de servicio).
+3. En `bot.json`, asignar la credencial de Telegram al disparador y al envío, y la de OpenRouter al nodo Modelo. Elegir un modelo que soporte herramientas (el valor de partida es `deepseek/deepseek-chat`).
+4. Publicar `bot.json`. El disparador de Telegram necesita una URL HTTPS pública (D6).
+5. Tras cambiar el motor o la tabla de SIPRES: `node scripts/empaquetar.js` y volver a importar.
