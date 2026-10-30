@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPool } from './db.js';
 import { retrieve } from './retriever.js';
+import { queryRecaSie, loadRecaSie } from './reca-sie.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const MAX_BODY_BYTES = 64 * 1024;
@@ -66,11 +67,14 @@ function validateApiKey(apiKey) {
 
 export function createRagServer({
   pool,
+  mode = 'semantic',
+  recaQueryFn = queryRecaSie,
   apiKey = process.env.RAG_API_KEY,
   retrieveFn = (question, options) => retrieve(question, { ...options, pool }),
   maxBodyBytes = MAX_BODY_BYTES
 } = {}) {
   validateApiKey(apiKey);
+  if (!['semantic', 'reca-sie'].includes(mode)) throw new Error('Modo RAG inválido');
   if (!Number.isSafeInteger(maxBodyBytes) || maxBodyBytes < 1) throw new Error('maxBodyBytes debe ser un entero positivo.');
 
   return createServer(async (request, response) => {
@@ -79,12 +83,21 @@ export function createRagServer({
 
     if (pathname === '/readyz' && request.method === 'GET') {
       try {
+        if (mode === 'reca-sie') { const corpus = loadRecaSie(); return sendJson(response, 200, {status:'ready',mode,registros:corpus.records.length}); }
         if (!pool) throw new Error('PostgreSQL pool is not configured');
         await pool.query('SELECT 1 FROM rag_chunks LIMIT 0');
         return sendJson(response, 200, { status: 'ready' });
       } catch {
         return sendJson(response, 503, { status: 'not_ready' });
       }
+    }
+
+    if (pathname === '/reca/productos' && request.method === 'GET') {
+      if (!isAuthorized(request, apiKey)) return sendJson(response, 401, {error:'unauthorized'});
+      try {
+        const corpus = loadRecaSie();
+        return sendJson(response, 200, {productos:corpus.records.map(r => ({registroReca:r.registration, nombre:r.product, institucion:r.institution, estadoReca:r.status_code})), fuente:'RECA', estado:'piloto'});
+      } catch { return sendJson(response, 503, {error:'Corpus RECA no disponible'}); }
     }
 
     if (pathname !== '/query') return sendJson(response, 404, { error: 'not_found' });
@@ -107,6 +120,11 @@ export function createRagServer({
         throw new HttpError(400, 'topK debe ser un entero entre 1 y 100.');
       }
 
+      if (body.registroReca !== undefined || mode === 'reca-sie') {
+        if (typeof body.registroReca !== 'string' || !body.registroReca.trim() || body.registroReca.length > 100) throw new HttpError(400, 'registroReca es obligatorio y debe ser texto de hasta 100 caracteres.');
+        const data = await recaQueryFn(body.query, {registroReca:body.registroReca, ...(topK === undefined ? {} : {topK})});
+        return sendJson(response, 200, data);
+      }
       const options = topK === undefined ? {} : { topK, pool };
       const results = await retrieveFn(body.query, options);
       return sendJson(response, 200, { results });
@@ -126,9 +144,12 @@ async function startServer() {
   const port = Number(process.env.PORT || 3000);
   if (!Number.isSafeInteger(port) || port < 1 || port > 65535) throw new Error('PORT debe estar entre 1 y 65535.');
 
-  const pool = await createPool();
-  const server = createRagServer({ pool, apiKey });
-  server.once('close', () => pool.end());
+  const mode = process.env.RAG_MODE || 'semantic';
+  if (!['semantic','reca-sie'].includes(mode)) throw new Error('RAG_MODE inválido');
+  if (mode === 'reca-sie') loadRecaSie();
+  const pool = mode === 'semantic' ? await createPool() : undefined;
+  const server = createRagServer({ pool, apiKey, mode });
+  if(pool) server.once('close', () => pool.end());
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(port, host, resolve);

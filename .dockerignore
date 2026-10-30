@@ -6,4 +6,5 @@ node_modules
 coverage
 tests
 README.md
-data
+data/*
+!data/reca/

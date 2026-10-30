@@ -107,3 +107,33 @@ The repository includes a Node 24 image build and a Compose stack with PostgreSQ
 The API is published on host loopback at port 3000 by default. n8n running on this host can call http://localhost:3000/query. For n8n in another container, attach that container to the hackaton-clara-rag network and call http://rag:3000/query. Store the bearer key in an n8n credential.
 
 Use Docker Desktop Linux containers with WSL 2. Before the first real run, configure the missing WSL 2 prerequisites and accept Docker Desktop's terms in its own UI. Do not expose the API to a public network without TLS and firewall controls.
+
+## Integración RECA + SIE para cerrar la demo
+
+La rama incluye diez contratos en `data/reca/`, con texto por página, URL oficial, fecha y SHA-256. El corpus activo de este modo usa contratos; las carátulas quedan fuera. La captura SIE SF316116 aporta **39.0809%**, promedio de cartera comparable de créditos personales, periodo enero-febrero de 2026, consultado el 30 de octubre de 2026. JR aceptó este promedio como referencia ordinaria del piloto. No es una tasa individual ni CAT. Los contratos aportan cláusulas y, cuando están documentados, topes y fórmulas moratorias; las cifras candidatas siguen sujetas a revisión. No se calcula capacidad de pago.
+
+Para ejecutar sin PostgreSQL ni un servicio de embeddings:
+
+```sh
+npm install
+# En .env: RAG_MODE=reca-sie y RAG_API_KEY=<clave privada de al menos 32 caracteres>
+npm start
+```
+
+También puede usarse `RAG_MODE=reca-sie` al ejecutar directamente la imagen Docker con `RAG_API_KEY` en el entorno. El Compose general sigue configurado para PostgreSQL; no es necesario para este modo.
+
+n8n debe llamar primero a `GET /reca/productos`, con bearer token, para obtener los diez números RECA. Luego llamar al mismo `POST /query`:
+
+```json
+{
+  "query": "¿Cuál es la referencia ordinaria y cómo se calculan los intereses moratorios?",
+  "registroReca": "0300-140-000731/30-00405-0226",
+  "topK": 3
+}
+```
+
+La respuesta mantiene `results` para que n8n pase al modelo texto y citas. Incluye hasta `topK` páginas RECA y una referencia SIE adicional, con `sourceType`, `url`, fecha y periodo; `page` es `null` para la serie SIE. `score` es coincidencia léxica, no certeza. `condiciones` conserva cláusulas candidatas, incluyendo para Banamex el máximo ordinario de 50% anual y factor moratorio de 1.2, con página 6 y hash. `interesOrdinarioReferencia` identifica el promedio SIE, mientras `catPct` y `tasaIndividualPct` permanecen `null`. La pertenencia del producto concreto al universo estadístico y la comparabilidad no se dan por verificadas.
+
+En modo semántico habitual, omitir `registroReca` conserva la ruta de PostgreSQL/embeddings. Incluirlo selecciona el corpus RECA + SIE. En modo `reca-sie`, el registro es obligatorio. Un registro desconocido devuelve `estado: registro_no_encontrado` y ninguna evidencia; no se completa con otro producto. `/readyz` valida el corpus al iniciar este modo. No se requiere ni se incluye la llave SIE para servir la captura. La captura no se actualiza automáticamente.
+
+Aceptación local: `npm test` cubre la API con autenticación y sin PostgreSQL, las diez identidades, citas por página, integridad PDF/texto y separación entre promedio, tasa individual y CAT. La integración real del flujo n8n, el modelo de redacción y el despliegue aún deben probarse en el entorno del equipo. No se debe describir esta entrega como validación de todas las condiciones de los productos.

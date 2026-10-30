@@ -5,6 +5,7 @@ COPY package.json ./
 RUN npm install --omit=dev
 
 COPY rag ./rag
+COPY data/reca ./data/reca
 RUN mkdir -p /app/rag/data && chown -R node:node /app
 USER node
 

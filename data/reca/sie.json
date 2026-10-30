@@ -1,0 +1,13 @@
+{
+  "id_serie": "SF316116",
+  "titulo": "Tasa de interés promedio ponderada por saldo de créditos personales en operación Considera los créditos comparables en operación a la fecha de corte Créditos Personales 2/ 3/",
+  "valor_pct": 39.0809,
+  "fecha_serie": "01/01/2026",
+  "periodo_publicado": "enero-febrero 2026",
+  "periodicidad": "Bimestral",
+  "fecha_consulta_utc": "2026-10-30T20:25:15.582510+00:00",
+  "fuente_datos": "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF316116/datos/oportuno",
+  "fuente_metodologia": "https://www.banxico.org.mx/SieInternet/consultarDirectorioInternetAction.do?sector=18&accion=consultarCuadro&idCuadro=CF815&locale=es",
+  "tipo_indicador": "tasa_promedio_ponderada_cartera_comparable",
+  "cat_producto_pct": null
+}

@@ -1,0 +1,133 @@
+{
+  "proposito": "Cláusulas candidatas para revisión y futura reconciliación; no son ofertas personalizadas.",
+  "hallazgos": [
+    {
+      "producto": "CREDICHIC FLEX",
+      "institucion": "Credichic, S.A. de C.V., SOFOM, E.N.R.",
+      "numero_reca": "17102-140-044679/01-02644-1026",
+      "tipo": "gastos_cobranza",
+      "resumen_candidato": "5% más IVA sobre saldo vencido cuando el acreditado incurre en mora; el contrato indica que este cobro es independiente de los intereses moratorios.",
+      "campos_candidatos": {
+        "porcentaje": 5,
+        "base": "saldo vencido",
+        "iva": "más IVA",
+        "condicion": "mora",
+        "independiente_de_intereses_moratorios": true
+      },
+      "revision": "pendiente_validacion_de_JR",
+      "origen": {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/144572c.pdf",
+        "pagina_pdf": 5,
+        "sha256": "ef31cae75323f2a6a5bb1f0b69421a6869c6676610517092d46eacc8a95bd096",
+        "fecha_consulta_ficha_utc": "2026-10-30T18:44:36.347262+00:00"
+      },
+      "banxico": {
+        "coincidencia_producto": null,
+        "cat": null,
+        "tasa": null,
+        "comisiones": null,
+        "estado": "sin_reconciliar"
+      }
+    },
+    {
+      "producto": "CPSJI EXTRA",
+      "institucion": "Caja Popular San Jose Iturbide, S.C. de A.P. de R.L. de C.V.",
+      "numero_reca": "13157-140-044492/01-02328-0926",
+      "tipo": "gastos_cobranza",
+      "resumen_candidato": "20% del saldo insoluto más intereses ordinarios cuando existe omisión de pago por más de 89 días de mora y la cuenta se canaliza a un despacho externo.",
+      "campos_candidatos": {
+        "porcentaje": 20,
+        "base": "saldo insoluto más intereses ordinarios",
+        "condicion": "omisión de pago por más de 89 días de mora y canalización a despacho externo",
+        "iva": null
+      },
+      "revision": "pendiente_validacion_de_JR",
+      "origen": {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143929c.pdf",
+        "pagina_pdf": 9,
+        "sha256": "850a192c31d2613be34a599c6f93c05387b576917eadad5a4d0894c3e31c9114",
+        "fecha_consulta_ficha_utc": "2026-10-30T18:44:49.367888+00:00"
+      },
+      "banxico": {
+        "coincidencia_producto": null,
+        "cat": null,
+        "tasa": null,
+        "comisiones": null,
+        "estado": "sin_reconciliar"
+      }
+    },
+    {
+      "producto": "PRESTAMO CLASICO",
+      "institucion": "Administradora de Caja Bienestar, S.A. de C.V., S.F.P.",
+      "numero_reca": "2455-140-028449/11-00383-0226",
+      "tipo": "gracia_domiciliacion",
+      "resumen_candidato": "Dos días hábiles desde la fecha de pago para créditos domiciliados, sin comisión por falta de pago si se procesa dentro del periodo y el retraso no es atribuible al cliente.",
+      "campos_candidatos": {
+        "duracion": 2,
+        "unidad": "días hábiles",
+        "inicio": "fecha de pago de la tabla de amortización",
+        "condicion": "pago domiciliado, retraso no atribuible al cliente y procesamiento efectivo dentro del periodo",
+        "alcance": "comisión por falta de pago",
+        "efecto_sobre_intereses": null
+      },
+      "revision": "pendiente_validacion_de_JR",
+      "origen": {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140008c.pdf",
+        "pagina_pdf": 4,
+        "sha256": "2c69dfd888736fc65bee121c0f48aa6a5c4030149ba7d5cbfd729e6688e5e19d",
+        "fecha_consulta_ficha_utc": "2026-10-30T19:16:24.356409+00:00"
+      },
+      "banxico": {
+        "coincidencia_producto": null,
+        "cat": null,
+        "tasa": null,
+        "comisiones": null,
+        "estado": "sin_reconciliar"
+      }
+    },
+    {
+      "producto": "CRÉDITO SUSTITUCIÓN EFECTIVO",
+      "institucion": "Santander Consumo, S.A. de C.V., SOFOM, E.R., Grupo Financiero Santander Mexico",
+      "numero_reca": "2576-140-026939/01-01210-0317",
+      "tipo": "gracia_capital_promocional",
+      "resumen_candidato": "Puede existir gracia para capital durante el periodo previsto en la tabla o plan de pagos; durante ese tiempo se sigue pagando la parte correspondiente a intereses conforme a la solicitud.",
+      "campos_candidatos": {
+        "duracion": null,
+        "unidad": null,
+        "condicion": "periodo promocional aplicable indicado en tabla o plan de pagos",
+        "alcance": "pago de capital",
+        "pago_de_intereses": "continúa conforme a solicitud"
+      },
+      "revision": "pendiente_validacion_de_JR",
+      "origen": {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/073460c.pdf",
+        "pagina_pdf": 5,
+        "sha256": "8af60647a429ba82e72d739eeb7f5068aa975a501aabd025ae5fea4c4e55dfb2",
+        "fecha_consulta_ficha_utc": "2026-10-30T19:17:17.366914+00:00"
+      },
+      "banxico": {
+        "coincidencia_producto": null,
+        "cat": null,
+        "tasa": null,
+        "comisiones": null,
+        "estado": "sin_reconciliar"
+      }
+    },
+    {
+      "numero_reca": "0300-140-000731/30-00405-0226",
+      "tipo": "condiciones_intereses",
+      "campos_candidatos": {
+        "maximo_ordinario_anual_pct": 50,
+        "factor_moratorio_sobre_ordinario": 1.2,
+        "base_dias": 360
+      },
+      "resumen_candidato": "La tasa ordinaria fija anual individualizada no será mayor de 50%; la tasa moratoria es 1.2 veces la ordinaria individualizada. Base de días: 360; revisar condiciones de mora y vencimiento.",
+      "revision": "pendiente_validacion_de_JR",
+      "origen": {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140042c.pdf",
+        "pagina_pdf": 6,
+        "sha256": "ec1dc758541fa433fc5fd5533e4c5fe9090fc0c0af8ca1ecf6db92ae29714102"
+      }
+    }
+  ]
+}

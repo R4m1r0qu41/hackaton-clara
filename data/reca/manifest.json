@@ -1,0 +1,364 @@
+[
+  {
+    "institution": "Credichic, S.A. de C.V., SOFOM, E.N.R.",
+    "product": "CREDICHIC FLEX",
+    "type": "Crédito Personal",
+    "registration": "17102-140-044679/01-02644-1026",
+    "id": "144572",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "Crédito otorgado por CREDICHIC, S.A. de C.V., SOFOM, E.N.R., dirigido a personas físicas, incluyendo aquellas con actividad empresarial, destinado a cubrir necesidades de financiamiento personal o relacionadas con su actividad económica, mediante la entrega de recursos sujetos a un plazo determinado, con pagos de capital e intereses, conforme a las condiciones, tasas, comisiones y demás términos establecidos en el contrato de adhesión correspondiente.",
+          "9",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/144572c.pdf",
+        "file": "144572c.pdf",
+        "sha256": "ef31cae75323f2a6a5bb1f0b69421a6869c6676610517092d46eacc8a95bd096",
+        "text_ok": true,
+        "text_bytes": 31882,
+        "hash_verified": true,
+        "text_pages": 9,
+        "text_sha256": "d16edd054fd7814fb43422905ddeafefd1760a62dfd7ecdc141f641db467ac22",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=144572&numreg=17102-140-044679%2F01-02644-1026",
+    "verified_at_utc": "2026-10-30T18:44:36.347262+00:00",
+    "current_version": "17102-140-044679/01-02644-1026",
+    "selected_version": "17102-140-044679/01-02644-1026",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  },
+  {
+    "institution": "Administradora de Caja Bienestar, S.A. de C.V., S.F.P.",
+    "product": "PRESTAMO CLASICO",
+    "type": "Crédito Personal",
+    "registration": "2455-140-028449/11-00383-0226",
+    "id": "140008",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "Ninguna",
+          "6",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140008c.pdf",
+        "file": "140008c.pdf",
+        "sha256": "2c69dfd888736fc65bee121c0f48aa6a5c4030149ba7d5cbfd729e6688e5e19d",
+        "text_sha256": "6eb1b30dbe2b66b8f4165ed0589e94fac97c491f836c70cd765b5c1795fab9f9",
+        "text_ok": true,
+        "text_bytes": 68463,
+        "text_pages": 6,
+        "empty_pages": [],
+        "descargado_utc": "2026-10-30T19:16:23.448938+00:00"
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=140008&numreg=2455-140-028449%2F11-00383-0226",
+    "verified_at_utc": "2026-10-30T19:16:24.356409+00:00",
+    "current_version": "2455-140-028449/11-00383-0226",
+    "selected_version": "2455-140-028449/11-00383-0226",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null,
+    "excluded_documents": [
+      {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/561255a.pdf",
+        "motivo": "posibles datos bancarios en texto"
+      }
+    ]
+  },
+  {
+    "institution": "Crece y Alcanza Mas, S.A. de C.V., SOFOM, E.N.R.",
+    "product": "CRÉDITO PERSONAL",
+    "type": "Crédito Personal",
+    "registration": "5872-140-044530/03-02620-1026",
+    "id": "144520",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "CONTRATO DE CREDITO PERSONAL",
+          "6",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/144520c.pdf",
+        "file": "144520c.pdf",
+        "sha256": "e7a6a20525d2ba2e1dfa86e84c7464aebfc8aee74012261342a432a01213ce3a",
+        "text_sha256": "558132054777fc016c3fc578a7accd1dee0cdcc30c8d3c7380aeb0fbdb4ba08c",
+        "text_ok": true,
+        "text_bytes": 29834,
+        "text_pages": 6,
+        "empty_pages": [],
+        "descargado_utc": "2026-10-30T19:17:04.825559+00:00"
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=144520&numreg=5872-140-044530%2F03-02620-1026",
+    "verified_at_utc": "2026-10-30T19:17:05.689334+00:00",
+    "current_version": "5872-140-044530/03-02620-1026",
+    "selected_version": "5872-140-044530/03-02620-1026",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  },
+  {
+    "institution": "Banco Nacional de Mexico, S. A., Integrante del Grupo Financiero Banamex.",
+    "product": "CREDITO PERSONAL BANAMEX",
+    "type": "Crédito Personal",
+    "registration": "0300-140-000731/30-00405-0226",
+    "id": "144409",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "Sin observaciones",
+          "14",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140042c.pdf",
+        "file": "140042c.pdf",
+        "sha256": "ec1dc758541fa433fc5fd5533e4c5fe9090fc0c0af8ca1ecf6db92ae29714102",
+        "text_ok": true,
+        "text_bytes": 97947,
+        "hash_verified": true,
+        "text_pages": 14,
+        "text_sha256": "98756752d911ce0c7b69f371716a1d5f798fb7309b23fd0c538a24a1256b121d",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=144409&numreg=0300-140-000731%2F30-00405-0226",
+    "verified_at_utc": "2026-10-30T18:44:42.230159+00:00",
+    "current_version": "0300-140-000731/30-00405-0226",
+    "selected_version": "0300-140-000731/30-00405-0226",
+    "is_current": true,
+    "status_code": "3",
+    "cancellation_date": null,
+    "status_label": "Modificado"
+  },
+  {
+    "institution": "Prosperare Forte, S.A.P.I. de C.V., SOFOM, E.N.R.",
+    "product": "CREDITO PERSONAL FORTE",
+    "type": "Crédito Personal",
+    "registration": "17252-140-043632/01-00714-0326",
+    "id": "144238",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "Crédito Personal Forte para Consumo",
+          "10",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/140757c.pdf",
+        "file": "140757c.pdf",
+        "sha256": "3f80afcdbff96eb33cc725bd8958ae19cd1756b8dd8af373556c7c012e274c79",
+        "text_ok": true,
+        "text_bytes": 53491,
+        "hash_verified": true,
+        "text_pages": 10,
+        "text_sha256": "ae52bbb45c27eab0ed4a52e2f6ba30e9fdb84b3b1bcf346bc45a8b0bc5c0ee7a",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=144238&numreg=17252-140-043632%2F01-00714-0326",
+    "verified_at_utc": "2026-10-30T18:44:44.044841+00:00",
+    "current_version": "17252-140-043632/01-00714-0326",
+    "selected_version": "17252-140-043632/01-00714-0326",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  },
+  {
+    "institution": "Santander Consumo, S.A. de C.V., SOFOM, E.R., Grupo Financiero Santander Mexico",
+    "product": "CRÉDITO SUSTITUCIÓN EFECTIVO",
+    "type": "Crédito Personal",
+    "registration": "2576-140-026939/01-01210-0317",
+    "id": "073460",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "El número de páginas puede variar",
+          "18",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/073460c.pdf",
+        "file": "073460c.pdf",
+        "sha256": "8af60647a429ba82e72d739eeb7f5068aa975a501aabd025ae5fea4c4e55dfb2",
+        "text_sha256": "6c1316511e7dd73baac54a8dfa7720a2888a232ac21adf529bad69ceb5ca7191",
+        "text_ok": true,
+        "text_bytes": 188911,
+        "text_pages": 18,
+        "empty_pages": [],
+        "descargado_utc": "2026-10-30T19:17:16.435793+00:00"
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=073460&numreg=2576-140-026939%2F01-01210-0317",
+    "verified_at_utc": "2026-10-30T19:17:17.366914+00:00",
+    "current_version": "2576-140-026939/01-01210-0317",
+    "selected_version": "2576-140-026939/01-01210-0317",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  },
+  {
+    "institution": "Caja Popular Comonfort, S.C. de A.P. de R.L. de C.V.",
+    "product": "PRODUCTIVO",
+    "type": "Crédito Personal",
+    "registration": "4742-140-037254/02-01768-0725",
+    "id": "144099",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "Proporcionar recursos financieros a los socios para satisfacer necesidades comerciales de liquidez, adquisición de maquinaria, equipo de trabajo, insumos, materias primas y asistencia técnica.",
+          "8",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/135831c.pdf",
+        "file": "135831c.pdf",
+        "sha256": "c15892eb7cdc4891924967ea61f5dd784a376b3a3b023f881db4fd638a088cc9",
+        "text_ok": true,
+        "text_bytes": 37024,
+        "hash_verified": true,
+        "text_pages": 8,
+        "text_sha256": "3d13941e0bde0c1fc392319f3e369ccdf95bd847ce453fa88c0561a63811a957",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=144099&numreg=4742-140-037254%2F02-01768-0725",
+    "verified_at_utc": "2026-10-30T18:44:47.610912+00:00",
+    "current_version": "4742-140-037254/02-01768-0725",
+    "selected_version": "4742-140-037254/02-01768-0725",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  },
+  {
+    "institution": "Caja Popular San Jose Iturbide, S.C. de A.P. de R.L. de C.V.",
+    "product": "CPSJI EXTRA",
+    "type": "Crédito Personal",
+    "registration": "13157-140-044492/01-02328-0926",
+    "id": "144043",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "CPSJI EXTRA",
+          "10",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143929c.pdf",
+        "file": "143929c.pdf",
+        "sha256": "850a192c31d2613be34a599c6f93c05387b576917eadad5a4d0894c3e31c9114",
+        "text_ok": true,
+        "text_bytes": 44222,
+        "hash_verified": true,
+        "text_pages": 10,
+        "text_sha256": "8ad0587e3af1a99f0d0c12b7367b75d8624407d1aa3b7e0e57a52cd482feaf2b",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=144043&numreg=13157-140-044492%2F01-02328-0926",
+    "verified_at_utc": "2026-10-30T18:44:49.367888+00:00",
+    "current_version": "13157-140-044492/01-02328-0926",
+    "selected_version": "13157-140-044492/01-02328-0926",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  },
+  {
+    "institution": "Caja Zongolica S.C. de A.P. de R.L. de C.V.",
+    "product": "CREDI-CONSUMO",
+    "type": "Crédito Personal",
+    "registration": "4926-140-015569/09-01095-0423",
+    "id": "143826",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "Ninguna",
+          "5",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/120356c.pdf",
+        "file": "120356c.pdf",
+        "sha256": "a8de173873021e6e909efd9095acb9c7aefd1fb3b17e0284cb7b94efa178bc78",
+        "text_ok": true,
+        "text_bytes": 57420,
+        "hash_verified": true,
+        "text_pages": 11,
+        "text_sha256": "fc566e71df111715461c5465f9cdc93e22c72c45d4014d59913eeaf3dff0cb72",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?pidact=143826&numreg=4926-140-015569%2F09-01095-0423",
+    "verified_at_utc": "2026-10-30T18:44:51.204111+00:00",
+    "current_version": "4926-140-015569/09-01095-0423",
+    "selected_version": "4926-140-015569/09-01095-0423",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null,
+    "excluded_documents": [
+      {
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/583110a.pdf",
+        "motivo": "La página 2 contiene códigos de barras asociados a una cuenta; se excluye por precaución y queda pendiente revisión."
+      }
+    ]
+  },
+  {
+    "institution": "Gondeal Financial Services, S.A. de C.V., SOFOM, E.N.R.",
+    "product": "GOCASH",
+    "type": "Crédito Personal",
+    "registration": "16701-140-042379/05-02331-0926",
+    "id": "143938",
+    "documents": [
+      {
+        "label": [
+          "1",
+          "Contrato",
+          "NINGUNA",
+          "11",
+          "Ver"
+        ],
+        "url": "https://registros.condusef.gob.mx/reca/admin/contratos_anexos/143938c.pdf",
+        "file": "143938c.pdf",
+        "sha256": "25f7d557babbf4c79ca8a746fa7ba5cdf07e201c31a8bede25644ea7af2d32d0",
+        "text_ok": true,
+        "text_bytes": 56626,
+        "hash_verified": true,
+        "text_pages": 11,
+        "text_sha256": "9ecad7273793950faa179e338bcde3a4460c22f27e50fafd7cd86e7e55472a49",
+        "empty_pages": []
+      }
+    ],
+    "detail_url": "https://registros.condusef.gob.mx/reca/tarjeta_nueva.php?numreg=16701-140-042379%2F05-02331-0926",
+    "verified_at_utc": "2026-10-30T19:11:27.837308+00:00",
+    "current_version": "16701-140-042379/05-02331-0926",
+    "selected_version": "16701-140-042379/05-02331-0926",
+    "is_current": true,
+    "status_code": "1",
+    "cancellation_date": null,
+    "status_label": null
+  }
+]

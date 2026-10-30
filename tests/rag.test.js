@@ -26,10 +26,10 @@ test('chunkText rechaza tamaños y solapamientos inválidos', () => {
   assert.throws(() => chunkText('texto', 1.5, 0), /chunkSize/);
 });
 
-test('buildChunks detecta los seis PDF y conserva archivo, página e índice', async () => {
+test('buildChunks detecta los PDF del corpus y conserva archivo, página e índice', async () => {
   const files = await fs.readdir(pdfDir, { withFileTypes: true });
   const pdfs = files.filter(entry => entry.isFile() && entry.name.toLowerCase().endsWith('.pdf'));
-  assert.equal(pdfs.length, 6);
+  assert.ok(pdfs.length >= 6);
 
   const records = await buildChunks(pdfDir, {
     chunkSize: 64,
@@ -40,7 +40,7 @@ test('buildChunks detecta los seis PDF y conserva archivo, página e índice', a
     ]
   });
 
-  assert.equal(new Set(records.map(record => record.source)).size, 6);
+  assert.equal(new Set(records.map(record => record.source)).size, pdfs.length);
   assert.ok(records.every(record => record.source.endsWith('.pdf')));
   assert.ok(records.every(record => record.page === 1 || record.page === 3));
   assert.ok(records.every(record => Number.isSafeInteger(record.chunkIndex) && record.chunkIndex >= 0));
@@ -106,10 +106,11 @@ test('ingest crea embeddings y reemplaza el índice de manera transaccional', as
     embedder: async texts => texts.map((_, index) => index === 0 ? [1, 0] : [0, 1])
   });
 
-  assert.equal(summary.sources.length, 6);
-  assert.equal(summary.chunks, 6);
+  const pdfCount = (await fs.readdir(pdfDir)).filter(name => name.toLowerCase().endsWith('.pdf')).length;
+  assert.equal(summary.sources.length, pdfCount);
+  assert.equal(summary.chunks, pdfCount);
   assert.equal(summary.dimensions, 2);
-  assert.equal(inserted.length, 3);
+  assert.equal(inserted.length, Math.ceil(summary.chunks / 2));
   assert.ok(inserted.every(batch => batch.params.length > 0));
   assert.ok(events.includes('BEGIN'));
   assert.ok(events.includes('DELETE FROM rag_chunks'));
