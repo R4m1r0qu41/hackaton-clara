@@ -61,7 +61,7 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 |---|---|---|
 | `registrada` | Paloma neutra | «Aparece como registrada en SIPRES, consulta del [`fecha_consulta`]» + términos buscados |
 | `no_registrada_confirmada` | **Triángulo de advertencia** (borde rojo) | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [`fecha_consulta`]» |
-| `sin_verificar` | **Triángulo de advertencia** (borde gris) | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES |
+| `sin_verificar` | **Triángulo de advertencia en blanco y negro** | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES |
 
 - Que la entidad no esté en nuestra tabla (`motivo: no_esta_en_tabla`) es siempre `sin_verificar`, nunca «no registrada». Ninguna palabra como «fraude» ni «estafa».
 - Si JR quiere colores en esta pantalla, el Equipo 1 devuelve `color` desde el servidor (brecha 6).
@@ -90,9 +90,11 @@ Cada color lleva palabra e ícono, por accesibilidad. Los umbrales los valida JR
 
 ## Señal de advertencia (SIPRES no encontrada)
 
-- Triángulo de advertencia: fondo amarillo, signo de exclamación negro, borde grueso. Se dibuja como SVG propio dentro de `web/` (sin imagen externa ni dependencia).
+- Triángulo de advertencia con signo de exclamación y borde grueso. Se dibuja como SVG propio dentro de `web/` (sin imagen externa ni dependencia).
 - Se usa cuando SIPRES no confirma a la entidad: `no_registrada_confirmada` y `sin_verificar`, en la pantalla 3 y en el bloque SIPRES del resultado de una oferta.
-- **Borde rojo solo con `no_registrada_confirmada`**, que es un hecho con fecha y términos buscados. Con `sin_verificar` el borde es gris: no sabemos si está registrada, y v3 prohíbe que eso se vea como rojo.
+- **Decisión de JR (30/10/2026): si la entidad no está, la advertencia va en blanco y negro.** Es el caso de `sin_verificar` (la entidad no está en nuestra tabla): fondo blanco, borde y signo negros. Sin rojo ni amarillo, porque no sabemos si está registrada y v3 prohíbe que eso se vea como rojo.
+- La versión amarilla con borde rojo queda solo para `no_registrada_confirmada`, que es un hecho con fecha y términos buscados. **Por confirmar con JR** si también esa va en blanco y negro.
+- Cualquier institución se puede verificar: la tabla propia cubre solo unas cuantas entidades, y para el resto la página lleva a SIPRES (CONDUSEF) con el enlace oficial. La página no afirma que una entidad está o no registrada sin que el servidor lo diga.
 - Siempre con texto al lado («No aparece en SIPRES» o «No pudimos verificarla») y `role="img"` con nombre «Advertencia». Nunca solo el ícono.
 - La página elige el ícono según el `estado` que manda el servidor; no calcula ningún veredicto.
 
@@ -141,6 +143,14 @@ Solo con P0 estable y con el adaptador de ~30 minutos que v3 describe:
 - Estado `sin_verificar` por entidad ausente de la tabla.
 - Prueba 2E: el enlace del bot de Telegram abre la página.
 - Mapa con y sin dato: trazos o barras, con periodo y fuente.
+
+## Estado de la construcción
+
+Construido en `web/` el 30/10/2026, contra los stubs del servidor (todo marcado como ejemplo): `index.html`, `styles.css`, `app.js`, `logica.js` y `test/logica.test.js`.
+
+- Hecho: inicio, revisar una oferta, verificar una entidad (con la advertencia en blanco y negro), acceso por estado en barras con detalle, y errores fijos con el servidor apagado.
+- Falta: el mapa SVG (`mapa-estados.svg`; espera el dato y la licencia), el panel «¿De dónde sale?» con fuentes reales (brecha 1), y la prueba en un celular real.
+- `node --test` pasa (40 pruebas: 27 del servidor y 13 de la lógica de la página).
 
 ## Pendiente por confirmar
 

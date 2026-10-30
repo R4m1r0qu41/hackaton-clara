@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crédito Claro</title>
+  <meta name="description" content="Revisa una oferta de crédito y verifica una entidad con datos oficiales.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Íconos: el triángulo toma sus colores de las variables de .tri-* en styles.css -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="ic-advertencia" viewBox="0 0 100 90">
+      <polygon points="50,7 94,83 6,83" fill="var(--tri-fondo)" stroke="var(--tri-borde)" stroke-width="9" stroke-linejoin="round"/>
+      <rect x="44.5" y="30" width="11" height="31" rx="5" fill="var(--tri-signo)"/>
+      <circle cx="50" cy="70" r="6" fill="var(--tri-signo)"/>
+    </symbol>
+    <symbol id="ic-ok" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="42" fill="var(--tri-fondo)" stroke="var(--tri-borde)" stroke-width="8"/>
+      <path d="M30 52 l14 14 l27 -30" fill="none" stroke="var(--tri-signo)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </svg>
+
+  <header class="cabecera">
+    <a class="marca" href="#/">Crédito Claro</a>
+  </header>
+
+  <main id="contenido">
+    <section id="inicio" class="vista" aria-labelledby="t-inicio">
+      <h1 id="t-inicio" tabindex="-1">¿Qué quieres entender?</h1>
+      <div class="botones">
+        <a class="boton grande" href="#/oferta">Revisar una oferta</a>
+        <a class="boton grande" href="#/entidad">Verificar una entidad</a>
+        <a class="boton grande" href="#/acceso">Ver acceso financiero por estado</a>
+      </div>
+      <p id="linea-salud" class="nota" role="status">Conectando con el servidor…</p>
+    </section>
+
+    <section id="oferta" class="vista" aria-labelledby="t-oferta" hidden>
+      <h2 id="t-oferta" tabindex="-1">Revisar una oferta</h2>
+      <p class="ayuda">Pega el texto de una oferta o de una etiqueta de crédito.</p>
+      <form id="form-oferta" novalidate>
+        <label for="texto-oferta">Texto de la oferta</label>
+        <textarea id="texto-oferta" rows="5" maxlength="5000" aria-describedby="error-oferta"></textarea>
+        <p id="error-oferta" class="error" role="alert" hidden></p>
+        <div class="acciones">
+          <button type="submit" class="boton primario">Revisar</button>
+          <button type="button" id="cargar-ejemplo" class="boton secundario">Cargar un ejemplo</button>
+        </div>
+      </form>
+      <div id="resultado-oferta" aria-live="polite"></div>
+    </section>
+
+    <section id="entidad" class="vista" aria-labelledby="t-entidad" hidden>
+      <h2 id="t-entidad" tabindex="-1">Verificar una entidad</h2>
+      <p class="ayuda">Escribe el nombre de la institución. Si no está en nuestra tabla, te llevamos a SIPRES para que la verifiques ahí.</p>
+      <form id="form-entidad" novalidate>
+        <label for="q-entidad">Nombre de la entidad</label>
+        <input id="q-entidad" type="search" autocomplete="off" aria-describedby="error-entidad">
+        <p id="error-entidad" class="error" role="alert" hidden></p>
+        <div class="acciones">
+          <button type="submit" class="boton primario">Verificar</button>
+        </div>
+      </form>
+      <div id="resultado-entidad" aria-live="polite"></div>
+    </section>
+
+    <section id="acceso" class="vista" aria-labelledby="t-acceso" hidden>
+      <h2 id="t-acceso" tabindex="-1">Acceso financiero por estado</h2>
+      <div id="resultado-acceso" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>Esta página no guarda lo que escribes. La información es de apoyo y no es asesoría financiera ni una recomendación.</p>
+  </footer>
+
+  <script src="logica.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
