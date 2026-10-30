@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Página de Crédito Claro. Habla solo con rutas abiertas de /api (sin X-Bot-Key ni claves).
+ * Página de Cuentas Claras. Habla solo con rutas abiertas de /api (sin X-Bot-Key ni claves).
  * Todo lo que llega del servidor se inserta como texto (textContent), nunca como HTML.
  */
 (function () {

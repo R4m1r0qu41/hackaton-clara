@@ -1,4 +1,6 @@
-# Crédito Claro — diseño de la página (`web/`) adaptado al plan v3
+# Cuentas Claras — diseño de la página (`web/`) adaptado al plan v3
+
+> Nombre del proyecto: **Cuentas Claras** (antes «Crédito Claro»), por indicación de JR el 30/10/2026. Los demás documentos del repo conservan el nombre anterior hasta que JR los actualice.
 
 `Hackathon Clara · 30/10/2026 · Tareas 2C y 2D del Equipo 2 · Base: plan-equipo v3 y stubs de server/routes.js`
 
