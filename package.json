@@ -2,9 +2,16 @@
   "name": "hackaton-clara",
   "version": "1.0.0",
   "private": true,
-  "description": "RAG de productos financieros para un agente Node.js",
+  "description": "RAG de productos financieros para un agente Node.js y n8n",
   "type": "module",
   "scripts": {
+    "ingest": "node rag/ingest.js",
     "test": "node --test"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "pdfjs-dist": "^4.10.38",
+    "pg": "^8.13.1"
   }
 }
