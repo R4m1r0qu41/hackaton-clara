@@ -6,7 +6,7 @@ Este documento fusiona el diseño de pantalla original (brief v2.2 §3 y `shared
 
 ## Qué había y qué se buscó
 
-El diseño original es solo texto: la sección 3 del brief v2.2 (tres entradas, tarjetas, gráfica de costo, mapa, panel «¿De dónde sale?», marcadores) y los tipos `Producto`, `Evidencia` y `Perfil`. No existe maqueta visual en el repo, en los worktrees ni entre los artefactos publicados. Este documento es la primera versión visual.
+El diseño original es solo texto: la sección 3 del brief v2.2 (tres entradas, tarjetas, gráfica de costo, mapa, panel «¿De dónde sale?», marcadores) y los tipos `Producto`, `Evidencia` y `Perfil`. No existe maqueta visual en el repo, en los worktrees ni entre los artefactos publicados. Este documento es la primera especificación de pantallas.
 
 ## De qué cambia el diseño
 
@@ -55,21 +55,23 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 ### 3 · Verificar una entidad (`GET /api/verificar?q=`)
 
 - Campo de búsqueda, desde 3 caracteres (el servidor responde `sin_verificar` con menos).
-- Tres resultados:
+- La página muestra el estado **en palabras, con un ícono neutro**, más la fecha y los términos buscados. **Sin colores de semáforo:** `/api/verificar` no devuelve `color`, y la página no decide (la regla de «al menos 2 términos» vive en `sipres.js`). Estar registrada tampoco es «sin riesgos».
 
-| `estado` | Mensaje (propuesta) | Color |
-|---|---|---|
-| `registrada` | «Aparece como registrada en SIPRES, consulta del [`fecha_consulta`]» + términos buscados | verde, sin recomendar |
-| `no_registrada_confirmada` | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [fecha]» | rojo, solo con fecha y al menos 2 términos |
-| `sin_verificar` | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES | gris |
+| `estado` | Mensaje (propuesta) |
+|---|---|
+| `registrada` | «Aparece como registrada en SIPRES, consulta del [`fecha_consulta`]» + términos buscados |
+| `no_registrada_confirmada` | «No aparece en SIPRES con los términos [`terminos_buscados`], consulta del [`fecha_consulta`]» |
+| `sin_verificar` | «No pudimos verificarla. Verifícala aquí» + enlace a SIPRES |
 
-- Que la entidad no esté en nuestra tabla (`motivo: no_esta_en_tabla`) es siempre gris, nunca rojo. Ninguna palabra como «fraude» ni «estafa».
+- Que la entidad no esté en nuestra tabla (`motivo: no_esta_en_tabla`) es siempre `sin_verificar`, nunca «no registrada». Ninguna palabra como «fraude» ni «estafa».
+- Si JR quiere colores en esta pantalla, el Equipo 1 devuelve `color` desde el servidor (brecha 6).
 
 ### 4 · Acceso financiero (`GET /api/acceso/estados`, `/api/acceso?estado=`)
 
 - Mapa SVG por estado (`mapa-estados.svg`), con el `estado_id` como id de cada trazo. Sin dato oficial, **barras** con lo que sí hay.
 - `valor: null` se pinta con trama gris y la leyenda «dato faltante»; nunca como cero.
 - Siempre visibles: `indicador`, `unidad`, `periodo` y `fuente_url`.
+- Tocar un estado resalta ese territorio y abre su detalle con `/api/acceso?estado=` (del diseño original: un territorio destacado, con el estado como ubicación opcional).
 - Nota fija: «Indicador por estado. No indica acceso en tu domicilio ni que puedas contratar un servicio».
 
 ## Semáforo
@@ -78,7 +80,7 @@ Una línea fija debajo: «Los datos se consultaron en [`datos_al` de `/api/salud
 
 | `color` | Palabra | Línea (propuesta) |
 |---|---|---|
-| `verde` | Sin señales | «No detectamos riesgos con la información consultada el [fecha]. No es una recomendación». |
+| `verde` | Sin señales | «No detectamos riesgos con la información consultada el [`datos_al` de `/api/salud`]. No es una recomendación». |
 | `amarillo` | Ojo | El motivo viene en el texto del motor. |
 | `rojo` | Alerta con hecho | Solo con un hecho verificado y su fecha. |
 | `gris` | Sin verificar | «No pudimos verificarla» + enlace. |
@@ -104,6 +106,7 @@ La API de P0 no trae un indicador `verificado` por campo. La página **no** escr
 3. `/api/consulta` devuelve solo texto: no hay cifras estructuradas (pago, costo total) para pintarlas aparte. Se muestra el texto tal cual.
 4. Nombres distintos para lo mismo: `estado` en `/api/verificar` y `estado_sipres` en `/api/consulta`. La página los trata por separado.
 5. Los `estado_id` del mapa son `EJ-01`, `EJ-02` en el stub. El `mapa-estados.svg` espera ids reales; hay que acordar el esquema con el dato de CNBV.
+6. `/api/verificar` no devuelve `color`. Solo hace falta si JR decide que la verificación de entidad lleve semáforo propio.
 
 ## Pasa a P1 (se conserva del diseño original)
 
@@ -127,7 +130,8 @@ Solo con P0 estable y con el adaptador de ~30 minutos que v3 describe:
 - Tres textos de ejemplo en celular; `null` visible como «dato faltante».
 - Servidor apagado: mensaje fijo.
 - Sin clave de IA: `origen: plantilla` a la vista.
-- Estado gris por entidad ausente de la tabla.
+- Estado `sin_verificar` por entidad ausente de la tabla.
+- Prueba 2E: el enlace del bot de Telegram abre la página.
 - Mapa con y sin dato: trazos o barras, con periodo y fuente.
 
 ## Pendiente por confirmar
