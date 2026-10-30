@@ -1,0 +1,90 @@
+[
+  {
+    "id": "prod-01",
+    "entidad_id": "ent-invex",
+    "nombre": "Volaris INVEX",
+    "tipo": "tarjeta_credito",
+    "categoria": "tdc_clasica_basica_mas_15000",
+    "cat_pct": 28.7,
+    "cat_sin_iva": null,
+    "anualidad_mxn": 0,
+    "tasa_anual_pct": null,
+    "plazo_meses": null,
+    "comisiones": [],
+    "evidencia": {
+      "fuente": "Banxico, Comparativo de tarjetas Clásicas y Básicas con límite de crédito de más de 15,000 pesos",
+      "url": "https://www.banxico.org.mx/waTarjetas/TarjetasCreditoClasicas15000.pdf",
+      "periodo": "jun-2026",
+      "fecha_captura": "2026-10-30",
+      "nota": "CAT de publicidad; el CAT de cada persona puede ser distinto",
+      "verificado_por": null
+    }
+  },
+  {
+    "id": "prod-02",
+    "entidad_id": "ent-invex",
+    "nombre": "Walmart INVEX",
+    "tipo": "tarjeta_credito",
+    "categoria": "tdc_clasica_basica_mas_15000",
+    "cat_pct": 31.2,
+    "cat_sin_iva": null,
+    "anualidad_mxn": null,
+    "tasa_anual_pct": null,
+    "plazo_meses": null,
+    "comisiones": [],
+    "evidencia": {
+      "fuente": "Banxico, Comparativo de tarjetas Clásicas y Básicas con límite de crédito de más de 15,000 pesos",
+      "url": "https://www.banxico.org.mx/waTarjetas/TarjetasCreditoClasicas15000.pdf",
+      "periodo": "jun-2026",
+      "fecha_captura": "2026-10-30",
+      "nota": "CAT de publicidad; el CAT de cada persona puede ser distinto",
+      "verificado_por": null
+    }
+  },
+  {
+    "id": "prod-03",
+    "entidad_id": "ent-plata",
+    "nombre": "Plata (Banco Plata)",
+    "tipo": "tarjeta_credito",
+    "categoria": "tdc_clasica_basica_mas_15000",
+    "cat_pct": 217.1,
+    "cat_sin_iva": null,
+    "anualidad_mxn": null,
+    "tasa_anual_pct": null,
+    "plazo_meses": null,
+    "comisiones": [],
+    "evidencia": {
+      "fuente": "Banxico, Comparativo de tarjetas Clásicas y Básicas con límite de crédito de más de 15,000 pesos",
+      "url": "https://www.banxico.org.mx/waTarjetas/TarjetasCreditoClasicas15000.pdf",
+      "periodo": "jun-2026",
+      "fecha_captura": "2026-10-30",
+      "nota": "CAT de publicidad; el CAT de cada persona puede ser distinto",
+      "verificado_por": null
+    }
+  },
+  {
+    "id": "prod-04",
+    "entidad_id": "ent-banorte",
+    "nombre": "Adelanto de Nómina Banorte",
+    "tipo": "credito_nomina",
+    "categoria": "adelanto_nomina",
+    "cat_pct": 124.0,
+    "cat_sin_iva": true,
+    "anualidad_mxn": null,
+    "tasa_anual_pct": 0.0,
+    "plazo_meses": null,
+    "monto_max_mxn": 10000,
+    "comisiones": [
+      { "concepto": "Disposición del crédito en efectivo", "tipo": "pct_monto", "valor": 7.0, "mas_iva": true, "periodicidad": "por evento" },
+      { "concepto": "Penalización por pago tardío", "tipo": "pct_saldo_vencido", "valor": 5.0, "mas_iva": null, "periodicidad": "por evento" }
+    ],
+    "evidencia": {
+      "fuente": "Banorte, Folleto informativo Adelanto de Nómina",
+      "url": "https://www.banorte.com/dam/jcr:e8dc5be9-17bf-4eea-aea3-d7b167781243/Folleto%20informativo%20ADN.pdf",
+      "periodo": "vigencia jun-dic 2026; CAT calculado al 30-jun-2026",
+      "fecha_captura": "2026-10-30",
+      "nota": "Tasa 0% pero CAT 124% por la comisión de disposición. Plazo no publicado: depende de la frecuencia de nómina.",
+      "verificado_por": null
+    }
+  }
+]

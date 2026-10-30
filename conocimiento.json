@@ -1,0 +1,65 @@
+[
+  {
+    "id": "K1",
+    "tema": "sipres",
+    "palabras": ["sipres", "registro", "registrada", "condusef", "legal", "autorizada", "verificar", "entidad"],
+    "texto": "El SIPRES es el registro público y gratuito de Condusef donde se puede confirmar si una institución financiera está legalmente constituida y registrada.",
+    "fuente": "Condusef, SIPRES",
+    "url": "https://webapps.condusef.gob.mx/SIPRES/jsp/pub/index.jsp",
+    "fecha_captura": "2026-10-30"
+  },
+  {
+    "id": "K2",
+    "tema": "sipres",
+    "palabras": ["no aparece", "sin registro", "reclamacion", "queja", "condusef", "sipres"],
+    "texto": "Si una empresa no está registrada en el SIPRES, no está constituida como institución financiera y Condusef no tiene facultades para atender reclamaciones en su contra.",
+    "fuente": "IDC Online, nota sobre préstamos exprés y SIPRES",
+    "url": "https://idconline.mx/corporativo/2017/08/15/cuidado-con-los-prestamos-expres",
+    "fecha_captura": "2026-10-30"
+  },
+  {
+    "id": "K3",
+    "tema": "suplantacion",
+    "palabras": ["suplantacion", "fraude", "imitan", "falsa", "nombre", "identidad", "alerta"],
+    "texto": "Condusef publica alertas periódicas de instituciones registradas que reportaron que terceros usan su nombre. Recomienda comparar nombre, domicilio y teléfono contra lo que aparece en el SIPRES.",
+    "fuente": "Condusef vía El Imparcial, alerta de suplantación (enero 2026)",
+    "url": "https://www.elimparcial.com/dinero/2026/01/16/condusef-alerta-sobre-suplantacion-de-esta-institucion-financiera-recomendaciones-clave-para-no-caer-en-la-trampa/",
+    "fecha_captura": "2026-10-30"
+  },
+  {
+    "id": "K4",
+    "tema": "cat",
+    "palabras": ["cat", "costo anual total", "comparar", "costo", "tarjeta", "caro", "barato"],
+    "texto": "El CAT (Costo Anual Total) sirve para comparar el costo de un crédito contra otras opciones. Banxico aclara que el CAT de publicidad no es el que paga cada persona: depende de su perfil de riesgo, y la entidad no está obligada a otorgar el producto en esos términos.",
+    "fuente": "Banxico, notas del comparativo de tarjetas (jun-2026)",
+    "url": "https://www.banxico.org.mx/waTarjetas/TarjetasCreditoClasicas15000.pdf",
+    "fecha_captura": "2026-10-30"
+  },
+  {
+    "id": "K5",
+    "tema": "cat_vs_tasa",
+    "palabras": ["tasa", "0%", "cero", "sin intereses", "comision", "cat", "nomina", "adelanto"],
+    "texto": "Una tasa de 0% no significa que el crédito sea gratis. Ejemplo: el Adelanto de Nómina de Banorte tiene tasa ordinaria de 0%, pero cobra 7% del monto dispuesto más IVA por disposición, y su CAT promedio informado es 124% sin IVA.",
+    "fuente": "Banorte, Folleto informativo Adelanto de Nómina (vigencia jun-dic 2026)",
+    "url": "https://www.banorte.com/dam/jcr:e8dc5be9-17bf-4eea-aea3-d7b167781243/Folleto%20informativo%20ADN.pdf",
+    "fecha_captura": "2026-10-30"
+  },
+  {
+    "id": "K6",
+    "tema": "inflacion",
+    "palabras": ["inflacion", "precios", "inpc", "real", "poder adquisitivo"],
+    "texto": "La inflación general anual en México fue de 3.45% en septiembre de 2026, según el INEGI. Sirve como punto de comparación para dimensionar el costo de un crédito.",
+    "fuente": "INEGI, boletín INPC septiembre 2026",
+    "url": "https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/inpc/inpc_2q2026_10.pdf",
+    "fecha_captura": "2026-10-30"
+  },
+  {
+    "id": "K7",
+    "tema": "comparar",
+    "palabras": ["donde comparar", "comparador", "buscar", "tarjetas", "condusef", "banxico"],
+    "texto": "Banxico y Condusef publican comparadores oficiales de tarjetas de crédito por categoría, con CAT y anualidad de cada producto.",
+    "fuente": "Banxico, comparativo de tarjetas; Condusef, buscador de tarjetas",
+    "url": "https://www.banxico.org.mx/tarjetascat/",
+    "fecha_captura": "2026-10-30"
+  }
+]

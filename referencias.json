@@ -1,0 +1,32 @@
+{
+  "inflacion": {
+    "valor_pct": 3.45,
+    "descripcion": "Inflación general anual (INPC)",
+    "periodo": "sep-2026",
+    "fuente": "INEGI, boletín INPC septiembre 2026",
+    "url": "https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/inpc/inpc_2q2026_10.pdf",
+    "fecha_captura": "2026-10-30"
+  },
+  "cat_por_categoria": {
+    "tdc_clasica_basica_mas_15000": {
+      "cat_min_pct": 28.7,
+      "cat_max_pct": 217.1,
+      "umbral_amarillo_pct": null,
+      "umbral_nota": "PENDIENTE JR. Sugerencia: mediana del cuadro de Banxico de la misma categoría.",
+      "periodo": "jun-2026",
+      "fuente": "Banxico, Comparativo de tarjetas Clásicas y Básicas con límite de crédito de más de 15,000 pesos",
+      "url": "https://www.banxico.org.mx/waTarjetas/TarjetasCreditoClasicas15000.pdf",
+      "fecha_captura": "2026-10-30"
+    },
+    "adelanto_nomina": {
+      "cat_min_pct": null,
+      "cat_max_pct": null,
+      "umbral_amarillo_pct": null,
+      "umbral_nota": "Sin referencia oficial capturada todavía; el semáforo debe dar gris en CAT.",
+      "periodo": null,
+      "fuente": null,
+      "url": null,
+      "fecha_captura": null
+    }
+  }
+}

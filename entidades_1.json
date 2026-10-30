@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ent-invex",
+    "nombre_comercial": "INVEX",
+    "razon_social": null,
+    "estado_sipres": "sin_verificar",
+    "terminos_buscados": ["INVEX", "Volaris INVEX", "Walmart INVEX"],
+    "evidencia": {
+      "fuente": "Condusef SIPRES",
+      "url": "https://webapps.condusef.gob.mx/SIPRES/jsp/pub/index.jsp",
+      "fecha_consulta": null
+    }
+  },
+  {
+    "id": "ent-plata",
+    "nombre_comercial": "Banco Plata",
+    "razon_social": null,
+    "estado_sipres": "sin_verificar",
+    "terminos_buscados": ["Plata", "Banco Plata"],
+    "evidencia": {
+      "fuente": "Condusef SIPRES",
+      "url": "https://webapps.condusef.gob.mx/SIPRES/jsp/pub/index.jsp",
+      "fecha_consulta": null
+    }
+  },
+  {
+    "id": "ent-banorte",
+    "nombre_comercial": "Banorte",
+    "razon_social": "Banco Mercantil del Norte, S.A., Institución de Banca Múltiple, Grupo Financiero Banorte",
+    "estado_sipres": "sin_verificar",
+    "terminos_buscados": ["Banorte", "Banco Mercantil del Norte"],
+    "evidencia": {
+      "fuente": "Condusef SIPRES (razón social tomada del folleto de Banorte)",
+      "url": "https://webapps.condusef.gob.mx/SIPRES/jsp/pub/index.jsp",
+      "fecha_consulta": null
+    }
+  }
+]
