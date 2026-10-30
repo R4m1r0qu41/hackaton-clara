@@ -323,3 +323,18 @@ Petición: "quiero que RECA y SIPRES sean consultables desde el agente".
 - **El buscador de SIPRES es por nombre**: un nombre muy distinto al registrado no coincide y queda `sin_verificar`.
 - **Los embeddings siguen siendo léxicos** (`embeddings-local`), no semánticos. Las consultas por registro RECA no los usan.
 - **Nada está commiteado.**
+
+## Dudas generales: límite de 1000 caracteres y documentos sin nombrar
+
+Petición: un prompt para que el agente conteste dudas generales (qué es el CAT, meses sin intereses), con respuestas de 1000 caracteres o menos y sin revelar de qué documento sale la información.
+
+- **El límite lo aplica el código, no solo el prompt.** Todo texto escrito por el modelo (con o sin RAG) se corta a `MAX_SALIDA` = 1000 caracteres, avisos incluidos: en una oración completa si la hay en la segunda mitad; si no, en una palabra con "…". La verificación se hace sobre lo que se envía, de modo que lo que queda fuera no hace fallar el mensaje. Las plantillas de resultado de una evaluación y la lista de contratos conservan su formato propio.
+- **Los documentos generales no se nombran.** Con `consultar_rag` desaparece la línea `Fuentes:`. Si el modelo cita un `.pdf` o el nombre de la fuente, el mensaje se reemplaza por el extracto (falla `cita_documento`). Los contratos RECA y la serie de Banxico sí conservan su línea de fuentes, porque son lo que la persona preguntó. Esto cambió el comportamiento anterior; las dos pruebas que esperaban la línea de fuentes de un PDF general se reescribieron.
+- **Las dudas conceptuales se contestan sin herramienta.** El corpus del RAG solo tiene comparativos de tarjetas, así que "qué es el CAT" no está ahí. El prompt pide explicarlo sin cifras; el verificador ya rechaza montos, porcentajes, fechas, colores y recomendaciones en una respuesta sin herramienta. `consultar_rag` queda para tarjetas concretas.
+
+| Paso | Resultado |
+|---|---|
+| RED | 8 pruebas fallan en `salida.test.js` y 1 en `empaquetar.test.js` (prompt) |
+| GREEN | Suite completa: 259 pruebas pasan, 0 fallan |
+
+**Huecos:** no se probó con Gemini ni DeepSeek reales que respeten el límite de 1000 caracteres y no digan "según el documento": el código corta y rechaza lo que cite un archivo, pero una frase como "según la información que consulté" pasaría. Los cambios no están aplicados en el n8n del equipo.

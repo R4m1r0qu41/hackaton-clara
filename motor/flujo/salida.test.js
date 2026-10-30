@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { leerObservaciones, elegirSalida } = require('./salida');
+const { leerObservaciones, elegirSalida, MAX_SALIDA } = require('./salida');
 const { procesar } = require('./procesar');
 const { buscarEntidad } = require('../sipres/sipres');
 const R = require('../respuesta/respuesta');
@@ -218,7 +218,7 @@ test('una respuesta de error del RAG no se toma como resultado', () => {
   }
 });
 
-test('con resultados del RAG, el texto del modelo sale con su aviso y sus fuentes si solo usa cifras de los fragmentos', () => {
+test('con resultados del RAG, el texto del modelo sale con su aviso, sin revelar de qué documento viene, si solo usa cifras de los fragmentos', () => {
   const texto = 'La anualidad de la tarjeta Oro es de $1,200.';
   const r = elegirSalida({ texto, pasos: [paso('consultar_rag', JSON.stringify(consultaRag()))] });
   assert.equal(r.origen, 'llm');
@@ -226,7 +226,8 @@ test('con resultados del RAG, el texto del modelo sale con su aviso y sus fuente
   assert.deepEqual(r.fallas, []);
   assert.ok(r.texto.startsWith(texto));
   assert.ok(r.texto.includes(R.AVISO_RAG));
-  assert.match(r.texto, /Fuentes: TarjetasOro\.pdf \(p\. 2\); TarjetasPlatino\.pdf \(p\. 1\)$/);
+  assert.equal(r.texto, `${texto}\n${R.AVISO_RAG}`);
+  assert.ok(!/Fuentes|Tarjetas(Oro|Platino)|\.pdf|\(p\./i.test(r.texto), r.texto);
 });
 
 test('si el modelo agrega algo que los fragmentos no dicen, sale un extracto del primer fragmento', () => {
@@ -268,10 +269,87 @@ test('el extracto se limpia y se acota a 500 caracteres', () => {
   assert.ok(extracto.endsWith('…'));
 });
 
-test('los nombres de fuente se limpian y la página es opcional', () => {
+test('los documentos generales no se nombran ni en el texto del modelo ni en el extracto', () => {
   const raro = { text: 'Dato.', source: 'Raro\n.pdf\u0007', page: undefined };
-  const r = elegirSalida({ texto: 'Dato.', pasos: [paso('consultar_rag', JSON.stringify({ results: [raro] }))] });
-  assert.match(r.texto, /Fuentes: Raro \.pdf$/);
+  const ok = elegirSalida({ texto: 'Dato.', pasos: [paso('consultar_rag', JSON.stringify({ results: [raro] }))] });
+  assert.equal(ok.texto, `Dato.\n${R.AVISO_RAG}`);
+  const rechazo = elegirSalida({ texto: 'Cuesta $9,999.', pasos: [paso('consultar_rag', JSON.stringify(consultaRag()))] });
+  assert.equal(rechazo.motivo, 'rag_rechazo');
+  assert.ok(!/Fuentes|\.pdf|Tarjetas(Oro|Platino)/i.test(rechazo.texto), rechazo.texto);
+});
+
+test('si el modelo nombra el documento, sale el extracto en lugar de su texto', () => {
+  for (const texto of ['Según TarjetasOro.pdf la anualidad es de $1,200.', 'El archivo tarjetasplatino dice que hay seguro de viaje.', 'La anualidad viene en el comparativo.pdf: $1,200.']) {
+    const r = elegirSalida({ texto, pasos: [paso('consultar_rag', JSON.stringify(consultaRag()))] });
+    assert.equal(r.motivo, 'rag_rechazo', texto);
+    assert.ok(r.fallas.includes('cita_documento'), `${texto} -> ${r.fallas}`);
+    assert.ok(!r.texto.includes(texto), texto);
+  }
+});
+
+test('el texto del modelo no se limita por mencionar la palabra documentos en general', () => {
+  const texto = 'En general, los documentos del crédito deben mostrar el CAT.';
+  assert.equal(elegirSalida({ texto, pasos: [paso('consultar_rag', JSON.stringify(consultaRag()))] }).motivo, 'rag');
+});
+
+const ORACION = 'El CAT es el costo anual total de un crédito y sirve para comparar ofertas. ';
+const parrafo = (veces) => ORACION.repeat(veces).trim();
+
+test('sin herramientas, una explicación larga se acota a 1000 caracteres en una oración completa', () => {
+  const texto = parrafo(30);
+  assert.ok(texto.length > 2000);
+  const r = elegirSalida({ texto, pasos: [] });
+  assert.equal(r.origen, 'llm');
+  assert.equal(r.motivo, 'conversacion');
+  assert.ok(r.texto.length <= MAX_SALIDA, String(r.texto.length));
+  assert.ok(r.texto.length > 900);
+  assert.ok(r.texto.endsWith('ofertas.'));
+  assert.ok(texto.startsWith(r.texto));
+});
+
+test('un texto de 1000 caracteres o menos no se toca', () => {
+  const texto = parrafo(12).slice(0, 1000);
+  const r = elegirSalida({ texto: `${texto.trim()}`, pasos: [] });
+  assert.equal(r.texto, texto.trim());
+  assert.equal(elegirSalida({ texto: 'Hola', pasos: [] }).texto, 'Hola');
+});
+
+test('sin un final de oración a la vista se corta en una palabra y se marca con puntos suspensivos', () => {
+  const texto = 'palabra '.repeat(400);
+  const r = elegirSalida({ texto, pasos: [] });
+  assert.ok(r.texto.length <= MAX_SALIDA);
+  assert.ok(r.texto.endsWith('…'));
+  assert.ok(!/palabr…$/.test(r.texto));
+});
+
+test('el límite se verifica sobre lo que se envía: lo que queda fuera no puede hacer fallar el mensaje', () => {
+  const texto = `${parrafo(14)} Después te cobrarán $9,999 al mes.`;
+  const r = elegirSalida({ texto, pasos: [] });
+  assert.equal(r.motivo, 'conversacion');
+  assert.ok(!r.texto.includes('9,999'));
+  const dentro = elegirSalida({ texto: `Te cobrarán $9,999. ${parrafo(30)}`, pasos: [] });
+  assert.equal(dentro.motivo, 'conversacion_rechazada');
+});
+
+test('con el RAG, el mensaje completo (texto, aviso y fuentes) cabe en 1000 caracteres y los avisos quedan íntegros', () => {
+  const texto = parrafo(30);
+  const general = elegirSalida({ texto, pasos: [paso('consultar_rag', JSON.stringify(consultaRag()))] });
+  assert.equal(general.motivo, 'rag');
+  assert.ok(general.texto.length <= MAX_SALIDA, String(general.texto.length));
+  assert.ok(general.texto.endsWith(R.AVISO_RAG));
+  const reca = elegirSalida({ texto, pasos: [paso('consultar_reca', JSON.stringify([consultaReca()]))] });
+  assert.equal(reca.motivo, 'rag');
+  assert.ok(reca.texto.length <= MAX_SALIDA, String(reca.texto.length));
+  for (const aviso of [R.AVISO_RAG, R.AVISO_RECA, R.AVISO_SIE]) assert.ok(reca.texto.includes(aviso), aviso);
+  assert.match(reca.texto, /Fuentes: RECA /);
+});
+
+test('el extracto de un fragmento largo también deja el mensaje en 1000 caracteres o menos', () => {
+  const largo = { text: 'a '.repeat(900), source: 'SF316116', page: null, sourceType: 'SIE' };
+  const r = elegirSalida({ texto: 'Cuesta $9,999.', pasos: [paso('consultar_reca', JSON.stringify([{ ...consultaReca(), results: [largo, ...consultaReca().results] }]))] });
+  assert.equal(r.motivo, 'rag_rechazo');
+  assert.ok(r.texto.length <= MAX_SALIDA, String(r.texto.length));
+  assert.ok(r.texto.includes(R.AVISO_SIE));
 });
 
 test('sin resultados del RAG se dice que no hay información', () => {

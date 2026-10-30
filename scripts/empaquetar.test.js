@@ -384,6 +384,27 @@ test('las instrucciones del agente nombran las herramientas y tratan el texto co
   assert.match(instrucciones, /RECA/);
 });
 
+test('las instrucciones piden explicar lo general, en 1000 caracteres o menos y sin nombrar documentos', () => {
+  const instrucciones = leerPrompt(RUTA_PROMPT);
+  assert.match(instrucciones, /1000 caracteres/);
+  for (const tema of [/CAT/, /meses sin intereses/i, /pago m[ií]nimo/i]) assert.match(instrucciones, tema);
+  assert.match(instrucciones, /no (menciones|nombres|reveles)[^.\n]*(documento|archivo)/i);
+  // Lo general se explica sin cifras: las cifras solo salen de una herramienta.
+  assert.match(instrucciones, /sin (dar )?cifras/i);
+  // Ya no limita a 10 líneas: el límite es de caracteres.
+  assert.doesNotMatch(instrucciones, /10 líneas/);
+  assert.ok(instrucciones.length < 6000, String(instrucciones.length));
+});
+
+test('las instrucciones evitan volcar la lista de RECA ante "cuánto cuesta un crédito con X"', () => {
+  const instrucciones = leerPrompt(RUTA_PROMPT);
+  assert.match(instrucciones, /cuánto cuesta un crédito/i);
+  assert.match(instrucciones, /no tienes tasas ni precios/i);
+  assert.match(instrucciones, /listar_reca solo/i);
+  // Ofrece caminos concretos en lugar de callar o inventar.
+  for (const camino of [/evaluar_oferta|evaluar la oferta/i, /SIPRES/, /contrato/i]) assert.match(instrucciones, camino);
+});
+
 test('el modelo es DeepSeek y la credencial se asigna en n8n, no en el archivo', () => {
   const modelo = nodo(bot(), 'Modelo');
   assert.equal(modelo.parameters.model, 'deepseek-chat');

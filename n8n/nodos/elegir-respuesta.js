@@ -350,9 +350,12 @@ __fabricas["flujo/salida"] = function (module, exports, require) {
  *   - el agente verificó una entidad      -> el mensaje de la herramienta
  *   - llamó a una herramienta de cálculo y no hubo resultado válido -> aviso de que no se pudo analizar
  *   - consultó los documentos (consultar_rag) -> el texto del modelo si sus cifras están en los fragmentos, con el
- *     aviso y las fuentes que añade el código; si no, un extracto del primer fragmento; sin resultados o con falla,
- *     un aviso
+ *     aviso que añade el código; si no, un extracto del primer fragmento; sin resultados o con falla, un aviso.
+ *     No se nombra el documento de donde sale la información; solo los contratos RECA y la serie de Banxico llevan
+ *     su línea de fuentes, porque son lo que la persona preguntó
  *   - no hubo herramientas                -> el texto del modelo solo si no dice nada que requiera un cálculo
+ * Todo texto escrito por el modelo (con o sin documentos) sale en MAX_SALIDA caracteres o menos, avisos incluidos: se
+ * corta en una oración completa y la verificación se hace sobre lo que se envía.
  * Devuelve { texto, origen, motivo, fallas }.
  */
 
@@ -365,6 +368,8 @@ const HERRAMIENTAS_DE_CALCULO = ['evaluar_oferta', 'verificar_entidad'];
 const HERRAMIENTAS_DE_CONSULTA = ['consultar_rag', 'consultar_reca'];
 const HERRAMIENTA_DE_LISTA = 'listar_reca';
 const MAX_EXTRACTO = 500;
+const MAX_SALIDA = 1000;
+const MIN_TEXTO_CON_PIE = 100;
 const MAX_FUENTE = 80;
 const MAX_FUENTES = 3;
 
@@ -397,6 +402,34 @@ function etiquetaDeFuente(f) {
   return limpiar(f.source, MAX_FUENTE);
 }
 
+/**
+ * Corta el texto a `maximo` caracteres: en el final de una oración si hay uno en la segunda mitad; si no, en una palabra,
+ * con puntos suspensivos. Lo que queda es siempre un comienzo del texto original. Lo que no es texto se devuelve igual.
+ */
+function acotar(texto, maximo) {
+  if (typeof texto !== 'string') return texto;
+  const limpio = texto.trim();
+  if (limpio.length <= maximo) return limpio;
+  const ventana = limpio.slice(0, maximo);
+  let fin = -1;
+  for (const m of ventana.matchAll(/[.!?](?=\s|$)/g)) fin = m.index;
+  if (fin >= maximo / 2 && limpio.length > fin + 1) return ventana.slice(0, fin + 1);
+  const palabra = limpio.slice(0, maximo - 1).replace(/\s+\S*$/, '').trimEnd();
+  return `${palabra || limpio.slice(0, maximo - 1)}…`;
+}
+
+/** El modelo no debe nombrar el archivo de donde sale la información: ni un .pdf ni el nombre de una fuente general. */
+function citaDocumento(texto, fragmentos) {
+  if (typeof texto !== 'string') return false;
+  if (/\.pdf\b/i.test(texto)) return true;
+  const bajo = texto.toLowerCase();
+  return fragmentos.some((f) => {
+    if (f.sourceType === 'RECA' || f.sourceType === 'SIE') return false;
+    const nombre = limpiar(f.source, MAX_FUENTE).toLowerCase().replace(/\.pdf$/, '').trim();
+    return nombre.length >= 4 && bajo.includes(nombre);
+  });
+}
+
 function lineaDeFuentes(fragmentos) {
   const grupos = new Map();
   for (const f of fragmentos) {
@@ -420,12 +453,17 @@ function salidaRag(texto, rag) {
     return { texto: R.mensajes.ragSinResultados(), origen: 'herramienta', motivo: 'rag_sin_resultados', fallas: [] };
   }
   const hay = (tipo) => fragmentos.some((f) => f.sourceType === tipo);
-  const pie = [R.AVISO_RAG, hay('RECA') && R.AVISO_RECA, hay('SIE') && R.AVISO_SIE, lineaDeFuentes(fragmentos)].filter(Boolean);
+  // Solo el contrato RECA y la serie de Banxico se nombran; el resto de los documentos no se revela.
+  const fuentes = fragmentos.filter((f) => f.sourceType === 'RECA' || f.sourceType === 'SIE');
+  const pie = [R.AVISO_RAG, hay('RECA') && R.AVISO_RECA, hay('SIE') && R.AVISO_SIE, lineaDeFuentes(fuentes)].filter(Boolean);
+  const presupuesto = Math.max(MIN_TEXTO_CON_PIE, MAX_SALIDA - pie.join('\n').length - 1);
   // El modelo también puede citar las cláusulas candidatas que el servicio extrajo de cada contrato.
   const clausulas = Array.isArray(rag.condiciones) ? rag.condiciones.map((c) => c && c.resumen_candidato).filter((s) => typeof s === 'string') : [];
-  const verificacion = R.verificarConversacion(texto, [...fragmentos.map((f) => f.text), ...clausulas]);
-  if (verificacion.ok) return { texto: [texto.trim(), ...pie].join('\n'), origen: 'llm', motivo: 'rag', fallas: [] };
-  return { texto: [extracto(fragmentos[0].text), ...pie].join('\n'), origen: 'plantilla', motivo: 'rag_rechazo', fallas: verificacion.fallas };
+  const enviado = acotar(texto, presupuesto);
+  const verificacion = R.verificarConversacion(enviado, [...fragmentos.map((f) => f.text), ...clausulas]);
+  const fallas = citaDocumento(enviado, fragmentos) ? [...verificacion.fallas, 'cita_documento'] : verificacion.fallas;
+  if (verificacion.ok && fallas.length === 0) return { texto: [enviado, ...pie].join('\n'), origen: 'llm', motivo: 'rag', fallas: [] };
+  return { texto: [acotar(extracto(fragmentos[0].text), presupuesto), ...pie].join('\n'), origen: 'plantilla', motivo: 'rag_rechazo', fallas };
 }
 
 /** Busca resultados de herramientas en lo que n8n entregó: objetos, listas, { json }, o texto JSON. */
@@ -492,12 +530,13 @@ function elegirSalida({ texto, pasos, error } = {}) {
   if (lista) return { texto: R.mensajes.recaLista(lista.productos), origen: 'herramienta', motivo: 'reca_lista', fallas: [] };
   if (llamo([HERRAMIENTA_DE_LISTA])) return ragNoDisponible;
 
-  const conversacion = R.verificarConversacion(texto);
-  if (conversacion.ok) return { texto: texto.trim(), origen: 'llm', motivo: 'conversacion', fallas: [] };
+  const enviado = acotar(texto, MAX_SALIDA);
+  const conversacion = R.verificarConversacion(enviado);
+  if (conversacion.ok) return { texto: enviado, origen: 'llm', motivo: 'conversacion', fallas: [] };
   return { texto: R.mensajes.error(), origen: 'plantilla', motivo: 'conversacion_rechazada', fallas: conversacion.fallas };
 }
 
-module.exports = { leerObservaciones, elegirSalida };
+module.exports = { leerObservaciones, elegirSalida, MAX_SALIDA };
 };
 
 const entrada = $input.first().json || {};
