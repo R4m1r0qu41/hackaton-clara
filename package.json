@@ -1,0 +1,13 @@
+{
+  "name": "hackaton-clara-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Servidor Node.js de Crédito Claro (esqueleto con respuestas de ejemplo)",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
